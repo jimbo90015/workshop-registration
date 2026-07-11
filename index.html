@@ -8,8 +8,12 @@
   :root { --bg:#0b0c10; --card:#15171e; --border:#2a2d38; --fg:#e8eaf0; --muted:#9aa0b0; --accent:#6c8cff; --accent2:#a06cff; --ok:#2ecc71; --err:#ff5c6c; }
   @media (prefers-color-scheme: light){ :root { --bg:#f5f6fa; --card:#ffffff; --border:#e2e5ee; --fg:#1b1d24; --muted:#6b7180; --accent:#3b5bff; --accent2:#8a3bff; } }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","Noto Sans TC",sans-serif; padding:24px; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","PingFang SC","Noto Sans TC","Noto Sans SC",sans-serif; padding:24px; }
   .wrap { max-width:640px; margin:0 auto; }
+  .langbar { display:flex; justify-content:flex-end; gap:6px; margin-bottom:12px; }
+  .langbar button { width:auto; margin:0; padding:6px 12px; font-size:.85rem; font-weight:600; border:1px solid var(--border);
+    border-radius:999px; background:var(--card); color:var(--muted); cursor:pointer; }
+  .langbar button.active { border-color:var(--accent); color:var(--fg); background:color-mix(in srgb,var(--accent) 14%,transparent); }
   .hero { text-align:center; padding:8px 0 20px; }
   .hero h1 { font-size:1.5rem; margin:0 0 6px; background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
   .hero p { color:var(--muted); margin:0; font-size:.95rem; }
@@ -23,7 +27,8 @@
     background:var(--bg); color:var(--fg); font-size:1rem; outline:none;
   }
   input:focus, select:focus, textarea:focus { border-color:var(--accent); }
-  textarea { min-height:70px; resize:vertical; }
+  .other-input { margin-top:8px; display:none; }
+  .other-input.show { display:block; }
   .chips { display:flex; flex-wrap:wrap; gap:8px; }
   .chips label { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid var(--border); border-radius:999px; cursor:pointer; font-size:.9rem; user-select:none; }
   .chips input { accent-color:var(--accent); }
@@ -42,18 +47,24 @@
 </head>
 <body>
 <div class="wrap">
+  <div class="langbar">
+    <button type="button" data-lang="zh-Hant">繁體</button>
+    <button type="button" data-lang="zh-Hans">简体</button>
+    <button type="button" data-lang="en">English</button>
+  </div>
+
   <div class="hero">
-    <h1>AI Workshop 報名</h1>
-    <p>填寫下方資料，我們會寄送確認信與課前資料。</p>
+    <h1 data-i18n="hero_h1">AI Workshop 報名</h1>
+    <p data-i18n="hero_p">填寫下方資料，我們會寄送確認信與課前資料。</p>
   </div>
 
   <form id="reg">
     <!-- ===== 場次 ===== -->
     <div class="field">
-      <label class="q" for="workshop">你想報名哪一場 Workshop？<span class="req">*</span></label>
+      <label class="q" for="workshop"><span data-i18n="q_workshop">你想報名哪一場 Workshop？</span><span class="req">*</span></label>
       <select id="workshop" required>
-        <option value="">— 請選擇 —</option>
-        <!-- value = Lark Workshops 表的 record_id；新增場次時在這裡加 option -->
+        <option value="" data-i18n="opt_ph">— 請選擇 —</option>
+        <!-- value = Lark Workshops 表的 record_id；新增場次時在這裡加 option（顯示文字不進 i18n） -->
         <option value="recvp14KDuYGjm" data-name="AI Agent Workshop - London">AI Agent Workshop · London · 2026/07/11</option>
       </select>
     </div>
@@ -61,143 +72,99 @@
     <!-- ===== 基本資料 ===== -->
     <div class="row2">
       <div class="field">
-        <label class="q" for="fullName">姓名<span class="req">*</span></label>
+        <label class="q" for="fullName"><span data-i18n="q_name">姓名</span><span class="req">*</span></label>
         <input id="fullName" type="text" required autocomplete="name">
       </div>
       <div class="field">
-        <label class="q" for="phone">手機<span class="req">*</span></label>
-        <input id="phone" type="tel" required autocomplete="tel" placeholder="+44 / +886 …">
+        <label class="q" for="phone" data-i18n="q_phone">手機（選填）</label>
+        <input id="phone" type="tel" autocomplete="tel" placeholder="+44 / +886 …">
       </div>
     </div>
 
     <div class="field">
-      <label class="q" for="email">Email<span class="req">*</span></label>
+      <label class="q" for="email"><span data-i18n="q_email">Email</span><span class="req">*</span></label>
       <input id="email" type="email" required autocomplete="email">
-      <div class="hint">用來發送報名確認、付款通知與課程資料。</div>
+      <div class="hint" data-i18n="hint_email">用來發送報名確認、付款通知與課程資料。</div>
+    </div>
+
+    <!-- ===== 通訊軟體（必填）===== -->
+    <div class="row2">
+      <div class="field">
+        <label class="q" for="messagingPlatform"><span data-i18n="q_msg_platform">通訊軟體</span><span class="req">*</span></label>
+        <select id="messagingPlatform" required>
+          <option value="" data-i18n="opt_ph">— 請選擇 —</option>
+          <option>LINE</option><option>WhatsApp</option><option>WeChat</option><option>Instagram</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="q" for="messagingId"><span data-i18n="q_msg_id">帳號 / ID</span><span class="req">*</span></label>
+        <input id="messagingId" type="text" required data-i18n-ph="ph_msg_id" placeholder="你的 LINE/WeChat/IG/WhatsApp 帳號">
+      </div>
     </div>
 
     <div class="row2">
       <div class="field">
-        <label class="q" for="messagingId">LINE / WhatsApp / WeChat ID</label>
-        <input id="messagingId" type="text">
+        <label class="q" for="preferredChannel"><span data-i18n="q_preferred">偏好聯絡方式</span><span class="req">*</span></label>
+        <select id="preferredChannel" required data-group="preferredChannel"></select>
+        <input class="other-input" id="preferredChannel_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
       </div>
       <div class="field">
-        <label class="q" for="preferredChannel">偏好聯絡方式<span class="req">*</span></label>
-        <select id="preferredChannel" required>
-          <option value="">—</option>
-          <option>LINE</option><option>WhatsApp</option><option>Email</option><option>Phone</option>
-          <option>WeChat</option><option>Instagram DM</option><option>Facebook Messenger</option><option>Other</option>
-        </select>
+        <label class="q" for="location"><span data-i18n="q_location">所在地區</span><span class="req">*</span></label>
+        <select id="location" required data-group="location"></select>
+        <input class="other-input" id="location_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
       </div>
     </div>
 
     <div class="row2">
       <div class="field">
-        <label class="q" for="location">所在地區<span class="req">*</span></label>
-        <select id="location" required>
-          <option value="">—</option>
-          <option>Taiwan</option><option>United Kingdom</option><option>China</option><option>Hong Kong</option>
-          <option>Singapore</option><option>Malaysia</option><option>United States</option><option>Other</option>
-        </select>
+        <label class="q" for="customerType"><span data-i18n="q_customerType">你目前的身份</span><span class="req">*</span></label>
+        <select id="customerType" required data-group="customerType"></select>
+        <input class="other-input" id="customerType_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
       </div>
       <div class="field">
-        <label class="q" for="customerType">你目前的身份<span class="req">*</span></label>
-        <select id="customerType" required>
-          <option value="">—</option>
-          <option>Student</option><option>Professional</option><option>Founder / Entrepreneur</option>
-          <option>Parent</option><option>Teacher</option><option>Company</option><option>School</option>
-          <option>Partner</option><option>Other</option>
-        </select>
+        <label class="q" for="company" data-i18n="q_company">公司 / 學校名稱（選填）</label>
+        <input id="company" type="text">
       </div>
-    </div>
-
-    <div class="field">
-      <label class="q" for="company">公司 / 學校名稱</label>
-      <input id="company" type="text">
     </div>
 
     <!-- ===== 需求 (→ Lead) ===== -->
     <div class="field">
-      <label class="q" for="aiExperience">你目前的 AI 使用程度<span class="req">*</span></label>
-      <select id="aiExperience" required>
-        <option value="">—</option>
-        <option>Complete Beginner</option><option>Basic User</option><option>Regular User</option>
-        <option>Advanced User</option><option>Professional / Developer</option><option>Unknown</option>
-      </select>
+      <label class="q" for="aiExperience"><span data-i18n="q_aiExp">你目前的 AI 使用程度</span><span class="req">*</span></label>
+      <select id="aiExperience" required data-group="aiExperience"></select>
     </div>
 
     <div class="field">
-      <label class="q">你用過哪些 AI 工具？</label>
-      <div class="chips" data-group="toolsUsed">
-        <label><input type="checkbox" value="ChatGPT">ChatGPT</label>
-        <label><input type="checkbox" value="Claude">Claude</label>
-        <label><input type="checkbox" value="Gemini">Gemini</label>
-        <label><input type="checkbox" value="Perplexity">Perplexity</label>
-        <label><input type="checkbox" value="Copilot">Copilot</label>
-        <label><input type="checkbox" value="Notion AI">Notion AI</label>
-        <label><input type="checkbox" value="Midjourney">Midjourney</label>
-        <label><input type="checkbox" value="Canva AI">Canva AI</label>
-        <label><input type="checkbox" value="n8n">n8n</label>
-        <label><input type="checkbox" value="Cursor">Cursor</label>
-        <label><input type="checkbox" value="Other">Other</label>
-        <label><input type="checkbox" value="None">None</label>
-      </div>
+      <label class="q" data-i18n="q_tools">你用過哪些 AI 工具？（選填）</label>
+      <div class="chips" data-group="toolsUsed"></div>
+      <input class="other-input" id="toolsUsed_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
     </div>
 
     <div class="field">
-      <label class="q">你最想透過 AI 解決什麼問題？<span class="req">*</span></label>
-      <div class="chips" data-group="painPoints">
-        <label><input type="checkbox" value="Does not know how to start">不知道怎麼開始</label>
-        <label><input type="checkbox" value="Does not know which AI tools to use">不知道用哪個工具</label>
-        <label><input type="checkbox" value="Does not know how to write prompts">不會寫 prompt</label>
-        <label><input type="checkbox" value="Does not know how to apply AI to real work">不知道怎麼用在工作</label>
-        <label><input type="checkbox" value="Wants to automate repetitive tasks">想自動化重複工作</label>
-        <label><input type="checkbox" value="Wants to build AI agents">想做 AI agent</label>
-        <label><input type="checkbox" value="Wants team training">想做團隊培訓</label>
-        <label><input type="checkbox" value="Other">其他</label>
-      </div>
+      <label class="q"><span data-i18n="q_pain">你最想透過 AI 解決什麼問題？</span><span class="req">*</span></label>
+      <div class="chips" data-group="painPoints"></div>
+      <input class="other-input" id="painPoints_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
     </div>
 
     <div class="field">
-      <label class="q">你參加這場 Workshop 的主要目的？<span class="req">*</span></label>
-      <div class="chips" data-group="learningGoals">
-        <label><input type="checkbox" value="Use AI for work efficiency">工作效率</label>
-        <label><input type="checkbox" value="Use AI for study">學習</label>
-        <label><input type="checkbox" value="Use AI for content creation">內容創作</label>
-        <label><input type="checkbox" value="Use AI for marketing">行銷</label>
-        <label><input type="checkbox" value="Use AI for business automation">商業自動化</label>
-        <label><input type="checkbox" value="Use AI for coding / product building">寫程式 / 做產品</label>
-        <label><input type="checkbox" value="Build AI agent">做 AI agent</label>
-        <label><input type="checkbox" value="Career development">職涯發展</label>
-        <label><input type="checkbox" value="Other">其他</label>
-      </div>
+      <label class="q"><span data-i18n="q_goal">你參加這場 Workshop 的主要目的？</span><span class="req">*</span></label>
+      <div class="chips" data-group="learningGoals"></div>
+      <input class="other-input" id="learningGoals_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
     </div>
 
     <div class="field">
-      <label class="q">你對哪些後續服務有興趣？（選填）</label>
-      <div class="chips" data-group="productInterest">
-        <label><input type="checkbox" value="Advanced Course">進階課程</label>
-        <label><input type="checkbox" value="1-on-1 Consulting">一對一顧問</label>
-        <label><input type="checkbox" value="Corporate Training">企業內訓</label>
-        <label><input type="checkbox" value="AI Agent Build">AI Agent 建置</label>
-        <label><input type="checkbox" value="Not Sure Yet">還不確定</label>
-      </div>
+      <label class="q" data-i18n="q_interest">你對哪些後續服務有興趣？（選填）</label>
+      <div class="chips" data-group="productInterest"></div>
     </div>
 
     <!-- ===== 來源 (→ Lead) ===== -->
     <div class="row2">
       <div class="field">
-        <label class="q" for="leadSource">你從哪裡知道我們的？<span class="req">*</span></label>
-        <select id="leadSource" required>
-          <option value="">—</option>
-          <option>Instagram</option><option>Facebook</option><option>Threads</option><option>Xiaohongshu</option>
-          <option>TikTok</option><option>YouTube</option><option>Referral</option><option>School</option>
-          <option>Offline Event</option><option>Online Webinar</option><option>Paid Ads</option>
-          <option>Organic Search</option><option>Other</option>
-        </select>
+        <label class="q" for="leadSource"><span data-i18n="q_leadSource">你從哪裡知道我們的？</span><span class="req">*</span></label>
+        <select id="leadSource" required data-group="leadSource"></select>
+        <input class="other-input" id="leadSource_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
       </div>
       <div class="field">
-        <label class="q" for="referralPerson">推薦人（選填）</label>
+        <label class="q" for="referralPerson" data-i18n="q_referral">推薦人（選填）</label>
         <input id="referralPerson" type="text">
       </div>
     </div>
@@ -205,25 +172,213 @@
     <!-- ===== 同意 (→ Registration) ===== -->
     <div class="field">
       <label class="consent"><input id="consentContact" type="checkbox" required>
-        <span>我同意主辦方後續就本次報名與我聯絡。<span class="req">*</span></span></label>
+        <span><span data-i18n="consent1">我同意主辦方後續就本次報名與我聯絡。</span><span class="req">*</span></span></label>
     </div>
     <div class="field">
       <label class="consent"><input id="marketingConsent" type="checkbox">
-        <span>我願意收到未來課程與活動資訊。</span></label>
+        <span data-i18n="consent2">我願意收到未來課程與活動資訊。</span></label>
     </div>
 
-    <button type="submit" id="submitBtn">送出報名</button>
+    <button type="submit" id="submitBtn" data-i18n="btn_submit">送出報名</button>
     <div class="status" id="status"></div>
   </form>
 </div>
 
 <script>
-  // ⚙️ 設定：填入你的 n8n webhook URL（Production 或 Test）
   const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
 
+  // ===== i18n 字典（t=繁體 s=簡體 e=English）=====
+  const I18N = {
+    title:        { t:"AI Workshop 報名表 · Registration", s:"AI Workshop 报名表 · Registration", e:"AI Workshop Registration" },
+    hero_h1:      { t:"AI Workshop 報名", s:"AI Workshop 报名", e:"AI Workshop Registration" },
+    hero_p:       { t:"填寫下方資料，我們會寄送確認信與課前資料。", s:"填写下方资料，我们会寄送确认信与课前资料。", e:"Fill in the form below and we'll email your confirmation and pre-course materials." },
+    q_workshop:   { t:"你想報名哪一場 Workshop？", s:"你想报名哪一场 Workshop？", e:"Which workshop would you like to join?" },
+    opt_ph:       { t:"— 請選擇 —", s:"— 请选择 —", e:"— Select —" },
+    q_name:       { t:"姓名", s:"姓名", e:"Full name" },
+    q_phone:      { t:"手機（選填）", s:"手机（选填）", e:"Phone (optional)" },
+    q_email:      { t:"Email", s:"Email", e:"Email" },
+    hint_email:   { t:"用來發送報名確認、付款通知與課程資料。", s:"用来发送报名确认、付款通知与课程资料。", e:"Used to send your confirmation, payment notice and course materials." },
+    q_msg_platform:{ t:"通訊軟體", s:"通讯软件", e:"Messaging app" },
+    q_msg_id:     { t:"帳號 / ID", s:"账号 / ID", e:"Account / ID" },
+    ph_msg_id:    { t:"你的 LINE/WeChat/IG/WhatsApp 帳號", s:"你的 LINE/WeChat/IG/WhatsApp 账号", e:"Your LINE/WeChat/IG/WhatsApp handle" },
+    q_preferred:  { t:"偏好聯絡方式", s:"偏好联络方式", e:"Preferred contact method" },
+    q_location:   { t:"所在地區", s:"所在地区", e:"Location" },
+    q_customerType:{ t:"你目前的身份", s:"你目前的身份", e:"Which best describes you?" },
+    q_company:    { t:"公司 / 學校名稱（選填）", s:"公司 / 学校名称（选填）", e:"Company / school (optional)" },
+    q_aiExp:      { t:"你目前的 AI 使用程度", s:"你目前的 AI 使用程度", e:"Your current AI experience level" },
+    q_tools:      { t:"你用過哪些 AI 工具？（選填）", s:"你用过哪些 AI 工具？（选填）", e:"Which AI tools have you used? (optional)" },
+    q_pain:       { t:"你最想透過 AI 解決什麼問題？", s:"你最想透过 AI 解决什么问题？", e:"What do you most want AI to help you solve?" },
+    q_goal:       { t:"你參加這場 Workshop 的主要目的？", s:"你参加这场 Workshop 的主要目的？", e:"Your main goal for joining this workshop?" },
+    q_interest:   { t:"你對哪些後續服務有興趣？（選填）", s:"你对哪些后续服务有兴趣？（选填）", e:"Any follow-up services you're interested in? (optional)" },
+    q_leadSource: { t:"你從哪裡知道我們的？", s:"你从哪里知道我们的？", e:"How did you hear about us?" },
+    q_referral:   { t:"推薦人（選填）", s:"推荐人（选填）", e:"Referred by (optional)" },
+    other_ph:     { t:"請填寫", s:"请填写", e:"Please specify" },
+    consent1:     { t:"我同意主辦方後續就本次報名與我聯絡。", s:"我同意主办方后续就本次报名与我联络。", e:"I agree to be contacted about this registration." },
+    consent2:     { t:"我願意收到未來課程與活動資訊。", s:"我愿意收到未来课程与活动资讯。", e:"I'd like to receive news about future courses and events." },
+    btn_submit:   { t:"送出報名", s:"送出报名", e:"Submit registration" },
+    btn_submitting:{ t:"送出中…", s:"送出中…", e:"Submitting…" },
+    err_pain_goal:{ t:"請至少選一個「想解決的問題」和「參加目的」。", s:"请至少选一个「想解决的问题」和「参加目的」。", e:"Please pick at least one pain point and one goal." },
+    ok_msg:       { t:"報名成功！確認信會寄到 ", s:"报名成功！确认信会寄到 ", e:"Registered! A confirmation will be sent to " },
+    err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
+    err_tail:     { t:"。請稍後再試或直接聯絡我們。", s:"。请稍后再试或直接联络我们。", e:". Please try again later or contact us." }
+  };
+
+  // ===== 選項字典：value 一律英文，label 三語 =====
+  const OPT = {
+    preferredChannel: { ph:true, other:true, items:[
+      ["LINE",{t:"LINE",s:"LINE",e:"LINE"}],["WhatsApp",{t:"WhatsApp",s:"WhatsApp",e:"WhatsApp"}],
+      ["Email",{t:"Email",s:"Email",e:"Email"}],["Phone",{t:"電話",s:"电话",e:"Phone"}],
+      ["WeChat",{t:"WeChat",s:"WeChat",e:"WeChat"}],["Instagram DM",{t:"Instagram DM",s:"Instagram DM",e:"Instagram DM"}],
+      ["Facebook Messenger",{t:"Facebook Messenger",s:"Facebook Messenger",e:"Facebook Messenger"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    location: { ph:true, other:true, items:[
+      ["Taiwan",{t:"台灣",s:"台湾",e:"Taiwan"}],["United Kingdom",{t:"英國",s:"英国",e:"United Kingdom"}],
+      ["China",{t:"中國",s:"中国",e:"China"}],["Hong Kong",{t:"香港",s:"香港",e:"Hong Kong"}],
+      ["Singapore",{t:"新加坡",s:"新加坡",e:"Singapore"}],["Malaysia",{t:"馬來西亞",s:"马来西亚",e:"Malaysia"}],
+      ["United States",{t:"美國",s:"美国",e:"United States"}],["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    customerType: { ph:true, other:true, items:[
+      ["Student",{t:"學生",s:"学生",e:"Student"}],["Professional",{t:"上班族",s:"上班族",e:"Professional"}],
+      ["Founder / Entrepreneur",{t:"創業者",s:"创业者",e:"Founder / Entrepreneur"}],["Parent",{t:"家長",s:"家长",e:"Parent"}],
+      ["Teacher",{t:"老師",s:"老师",e:"Teacher"}],["Company",{t:"企業",s:"企业",e:"Company"}],
+      ["School",{t:"學校",s:"学校",e:"School"}],["Partner",{t:"合作夥伴",s:"合作伙伴",e:"Partner"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    aiExperience: { ph:true, other:false, items:[
+      ["Complete Beginner",{t:"完全新手",s:"完全新手",e:"Complete beginner"}],["Basic User",{t:"基礎使用者",s:"基础用户",e:"Basic user"}],
+      ["Regular User",{t:"一般使用者",s:"常规用户",e:"Regular user"}],["Advanced User",{t:"進階使用者",s:"进阶用户",e:"Advanced user"}],
+      ["Professional / Developer",{t:"專業 / 開發者",s:"专业 / 开发者",e:"Professional / Developer"}],["Unknown",{t:"不確定",s:"不确定",e:"Not sure"}] ]},
+    toolsUsed: { other:true, items:[
+      ["ChatGPT",{t:"ChatGPT",s:"ChatGPT",e:"ChatGPT"}],["Claude",{t:"Claude",s:"Claude",e:"Claude"}],
+      ["Gemini",{t:"Gemini",s:"Gemini",e:"Gemini"}],["Perplexity",{t:"Perplexity",s:"Perplexity",e:"Perplexity"}],
+      ["Copilot",{t:"Copilot",s:"Copilot",e:"Copilot"}],["Notion AI",{t:"Notion AI",s:"Notion AI",e:"Notion AI"}],
+      ["Midjourney",{t:"Midjourney",s:"Midjourney",e:"Midjourney"}],["Canva AI",{t:"Canva AI",s:"Canva AI",e:"Canva AI"}],
+      ["n8n",{t:"n8n",s:"n8n",e:"n8n"}],["Cursor",{t:"Cursor",s:"Cursor",e:"Cursor"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}],["None",{t:"沒用過",s:"没用过",e:"None"}] ]},
+    painPoints: { other:true, items:[
+      ["Does not know how to start",{t:"不知道怎麼開始",s:"不知道怎么开始",e:"Don't know how to start"}],
+      ["Does not know which AI tools to use",{t:"不知道用哪個工具",s:"不知道用哪个工具",e:"Don't know which tools to use"}],
+      ["Does not know how to write prompts",{t:"不會寫 prompt",s:"不会写 prompt",e:"Don't know how to write prompts"}],
+      ["Does not know how to apply AI to real work",{t:"不知道怎麼用在工作",s:"不知道怎么用在工作",e:"Don't know how to apply AI to work"}],
+      ["Wants to automate repetitive tasks",{t:"想自動化重複工作",s:"想自动化重复工作",e:"Want to automate repetitive tasks"}],
+      ["Wants to build AI agents",{t:"想做 AI agent",s:"想做 AI agent",e:"Want to build AI agents"}],
+      ["Wants team training",{t:"想做團隊培訓",s:"想做团队培训",e:"Want team training"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    learningGoals: { other:true, items:[
+      ["Use AI for work efficiency",{t:"工作效率",s:"工作效率",e:"Work efficiency"}],
+      ["Use AI for study",{t:"學習",s:"学习",e:"Study & learning"}],
+      ["Use AI for content creation",{t:"內容創作",s:"内容创作",e:"Content creation"}],
+      ["Use AI for marketing",{t:"行銷",s:"营销",e:"Marketing"}],
+      ["Use AI for business automation",{t:"商業自動化",s:"商业自动化",e:"Business automation"}],
+      ["Use AI for coding / product building",{t:"寫程式 / 做產品",s:"写程序 / 做产品",e:"Coding / product building"}],
+      ["Build AI agent",{t:"做 AI agent",s:"做 AI agent",e:"Build an AI agent"}],
+      ["Career development",{t:"職涯發展",s:"职业发展",e:"Career development"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    productInterest: { other:false, items:[
+      ["Advanced Course",{t:"進階課程",s:"进阶课程",e:"Advanced course"}],
+      ["1-on-1 Consulting",{t:"一對一顧問",s:"一对一顾问",e:"1-on-1 consulting"}],
+      ["Corporate Training",{t:"企業內訓",s:"企业内训",e:"Corporate training"}],
+      ["AI Agent Build",{t:"AI Agent 建置",s:"AI Agent 搭建",e:"AI Agent build"}],
+      ["Not Sure Yet",{t:"還不確定",s:"还不确定",e:"Not sure yet"}] ]},
+    leadSource: { ph:true, other:true, items:[
+      ["Instagram",{t:"Instagram",s:"Instagram",e:"Instagram"}],["Facebook",{t:"Facebook",s:"Facebook",e:"Facebook"}],
+      ["Threads",{t:"Threads",s:"Threads",e:"Threads"}],["Xiaohongshu",{t:"小紅書",s:"小红书",e:"Xiaohongshu"}],
+      ["TikTok",{t:"TikTok",s:"TikTok",e:"TikTok"}],["YouTube",{t:"YouTube",s:"YouTube",e:"YouTube"}],
+      ["Referral",{t:"朋友推薦",s:"朋友推荐",e:"Referral"}],["School",{t:"學校",s:"学校",e:"School"}],
+      ["Offline Event",{t:"線下活動",s:"线下活动",e:"Offline event"}],["Online Webinar",{t:"線上講座",s:"线上讲座",e:"Online webinar"}],
+      ["Paid Ads",{t:"付費廣告",s:"付费广告",e:"Paid ads"}],["Organic Search",{t:"搜尋引擎",s:"搜索引擎",e:"Organic search"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]}
+  };
+
   const $ = (id) => document.getElementById(id);
-  const collectGroup = (name) =>
-    [...document.querySelectorAll(`[data-group="${name}"] input:checked`)].map(i => i.value);
+  const LK = { "zh-Hant":"t", "zh-Hans":"s", "en":"e" };
+  let LANG = detectLang();
+
+  function detectLang(){
+    const saved = localStorage.getItem("reg_lang");
+    if (saved && LK[saved]) return saved;
+    const n = (navigator.language || "").toLowerCase();
+    if (n.startsWith("zh")) return (n.includes("cn")||n.includes("hans")||n.includes("sg")) ? "zh-Hans" : "zh-Hant";
+    if (n.startsWith("en")) return "en";
+    return "zh-Hant";
+  }
+
+  // 建立 select / chips（只建一次；label 元素記住三語，切語言時只改字）
+  const translatable = []; // {el, map, attr}
+  function reg(el, map, attr){ translatable.push({el, map, attr}); }
+
+  function buildSelect(sel){
+    const cfg = OPT[sel.dataset.group];
+    sel.innerHTML = "";
+    if (cfg.ph){ const o=document.createElement("option"); o.value=""; reg(o, I18N.opt_ph, "text"); sel.appendChild(o); }
+    cfg.items.forEach(([val,map])=>{ const o=document.createElement("option"); o.value=val; reg(o, map, "text"); sel.appendChild(o); });
+  }
+  function buildChips(box){
+    const cfg = OPT[box.dataset.group];
+    box.innerHTML = "";
+    cfg.items.forEach(([val,map])=>{
+      const lab=document.createElement("label");
+      const inp=document.createElement("input"); inp.type="checkbox"; inp.value=val;
+      const span=document.createElement("span"); reg(span, map, "text");
+      lab.appendChild(inp); lab.appendChild(span); box.appendChild(lab);
+    });
+  }
+
+  document.querySelectorAll("select[data-group]").forEach(buildSelect);
+  document.querySelectorAll(".chips[data-group]").forEach(buildChips);
+
+  // Other 顯示/隱藏
+  function wireOther(){
+    // select 型
+    ["preferredChannel","location","customerType","leadSource"].forEach(g=>{
+      const sel=$(g), other=$(g+"_other");
+      if(!sel||!other) return;
+      sel.addEventListener("change", ()=> toggleOther(other, sel.value==="Other"));
+    });
+    // chips 型
+    ["toolsUsed","painPoints","learningGoals"].forEach(g=>{
+      const box=document.querySelector(`.chips[data-group="${g}"]`), other=$(g+"_other");
+      if(!box||!other) return;
+      box.addEventListener("change", ()=>{
+        const otherBox=[...box.querySelectorAll('input')].find(i=>i.value==="Other");
+        toggleOther(other, !!(otherBox && otherBox.checked));
+      });
+    });
+  }
+  function toggleOther(input, show){ input.classList.toggle("show", show); input.required = show; if(!show) input.value=""; }
+  wireOther();
+
+  // 語言切換
+  function setLang(lang){
+    LANG = lang; const k = LK[lang];
+    localStorage.setItem("reg_lang", lang);
+    document.documentElement.lang = lang;
+    document.title = I18N.title[k];
+    document.querySelectorAll("[data-i18n]").forEach(el=>{ const key=el.dataset.i18n; if(I18N[key]) el.textContent = I18N[key][k]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const key=el.dataset.i18nPh; if(I18N[key]) el.placeholder = I18N[key][k]; });
+    translatable.forEach(({el,map,attr})=>{ if(attr==="text") el.textContent = map[k]; });
+    document.querySelectorAll(".langbar button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
+  }
+  document.querySelectorAll(".langbar button").forEach(b=> b.addEventListener("click", ()=> setLang(b.dataset.lang)));
+  setLang(LANG);
+
+  // 收集 chips；Other 有填字就用填的字取代 "Other"
+  function collectGroup(name){
+    const box=document.querySelector(`.chips[data-group="${name}"]`);
+    let vals=[...box.querySelectorAll("input:checked")].map(i=>i.value);
+    const other=$(name+"_other");
+    if(other && vals.includes("Other")){
+      const txt=other.value.trim();
+      vals = vals.map(v=> v==="Other" ? (txt || "Other") : v);
+    }
+    return vals;
+  }
+  // select 值；Other 有填字就用填的字
+  function selVal(id){
+    const sel=$(id), other=$(id+"_other");
+    if(sel.value==="Other" && other){ const t=other.value.trim(); if(t) return t; }
+    return sel.value;
+  }
+  const T = () => I18N;   // shorthand
+  const k = () => LK[LANG];
 
   $("reg").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -231,39 +386,42 @@
     const payload = {
       workshopRecordId: ws.value,
       workshopName: ws.selectedOptions[0]?.dataset.name || "",
+      formLang: LANG,
       fullName: $("fullName").value.trim(),
       phone: $("phone").value.trim(),
       email: $("email").value.trim(),
+      messagingPlatform: $("messagingPlatform").value,
       messagingId: $("messagingId").value.trim(),
-      preferredChannel: $("preferredChannel").value,
-      location: $("location").value,
-      customerType: $("customerType").value,
+      preferredChannel: selVal("preferredChannel"),
+      location: selVal("location"),
+      customerType: selVal("customerType"),
       company: $("company").value.trim(),
       aiExperience: $("aiExperience").value,
       toolsUsed: collectGroup("toolsUsed"),
       painPoints: collectGroup("painPoints"),
       learningGoals: collectGroup("learningGoals"),
       productInterest: collectGroup("productInterest"),
-      leadSource: $("leadSource").value,
+      leadSource: selVal("leadSource"),
       referralPerson: $("referralPerson").value.trim(),
       consentContact: $("consentContact").checked,
       marketingConsent: $("marketingConsent").checked,
       submittedAt: new Date().toISOString()
     };
     if (payload.painPoints.length === 0 || payload.learningGoals.length === 0) {
-      return showStatus(false, "請至少選一個「想解決的問題」和「參加目的」。");
+      return showStatus(false, T().err_pain_goal[k()]);
     }
-    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "送出中…";
+    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T().btn_submitting[k()];
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
-      showStatus(true, "報名成功！確認信會寄到 " + payload.email + "。");
+      showStatus(true, T().ok_msg[k()] + payload.email + (LANG==="en" ? "." : "。"));
       $("reg").reset();
+      document.querySelectorAll(".other-input").forEach(i=>toggleOther(i,false));
     } catch (err) {
-      showStatus(false, "送出失敗：" + err.message + "。請稍後再試或直接聯絡我們。");
-    } finally { btn.disabled = false; btn.textContent = "送出報名"; }
+      showStatus(false, T().err_msg[k()] + err.message + T().err_tail[k()]);
+    } finally { btn.disabled = false; btn.textContent = T().btn_submit[k()]; }
   });
 
   function showStatus(ok, msg){
