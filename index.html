@@ -127,6 +127,24 @@
       </div>
     </div>
 
+    <!-- ===== 學生條件題（選學生才顯示）===== -->
+    <div id="studentSection" style="display:none">
+      <div class="field">
+        <label class="q" for="fieldOfStudy" data-i18n="q_fieldOfStudy">你就讀的科系 / 學院？</label>
+        <input id="fieldOfStudy" type="text">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label class="q" for="yearsToGraduation" data-i18n="q_yearsToGrad">大約幾年後畢業？</label>
+          <select id="yearsToGraduation" data-group="yearsToGrad"></select>
+        </div>
+        <div class="field">
+          <label class="q" data-i18n="q_targetRoles">未來想衝刺的職能？（選填，可複選）</label>
+          <div class="chips" data-group="targetRoles"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ===== 需求 (→ Lead) ===== -->
     <div class="field">
       <label class="q" for="aiExperience"><span data-i18n="q_aiExp">你目前的 AI 使用程度</span><span class="req">*</span></label>
@@ -205,9 +223,12 @@
     q_location:   { t:"所在地區", s:"所在地区", e:"Location" },
     q_customerType:{ t:"你目前的身份", s:"你目前的身份", e:"Which best describes you?" },
     q_company:    { t:"公司 / 學校名稱（選填）", s:"公司 / 学校名称（选填）", e:"Company / school (optional)" },
+    q_fieldOfStudy:{ t:"你就讀的科系 / 學院？", s:"你就读的科系 / 学院？", e:"Your field of study / school?" },
+    q_yearsToGrad:{ t:"大約幾年後畢業？", s:"大约几年后毕业？", e:"About how many years until you graduate?" },
+    q_targetRoles:{ t:"未來想衝刺的職能？（選填，可複選）", s:"未来想冲刺的职能？（选填，可复选）", e:"Roles you're aiming for? (optional)" },
     q_aiExp:      { t:"你目前的 AI 使用程度", s:"你目前的 AI 使用程度", e:"Your current AI experience level" },
     q_tools:      { t:"你用過哪些 AI 工具？（選填）", s:"你用过哪些 AI 工具？（选填）", e:"Which AI tools have you used? (optional)" },
-    q_pain:       { t:"你最想透過 AI 解決什麼問題？", s:"你最想透过 AI 解决什么问题？", e:"What do you most want AI to help you solve?" },
+    q_pain:       { t:"你使用 AI 時最大的痛點是什麼？", s:"你使用 AI 时最大的痛点是什么？", e:"What's your biggest pain point using AI?" },
     q_goal:       { t:"你參加這場 Workshop 的主要目的？", s:"你参加这场 Workshop 的主要目的？", e:"Your main goal for joining this workshop?" },
     q_interest:   { t:"你對哪些後續服務有興趣？（選填）", s:"你对哪些后续服务有兴趣？（选填）", e:"Any follow-up services you're interested in? (optional)" },
     q_leadSource: { t:"你從哪裡知道我們的？", s:"你从哪里知道我们的？", e:"How did you hear about us?" },
@@ -247,30 +268,25 @@
       ["Regular User",{t:"一般使用者",s:"常规用户",e:"Regular user"}],["Advanced User",{t:"進階使用者",s:"进阶用户",e:"Advanced user"}],
       ["Professional / Developer",{t:"專業 / 開發者",s:"专业 / 开发者",e:"Professional / Developer"}],["Unknown",{t:"不確定",s:"不确定",e:"Not sure"}] ]},
     toolsUsed: { other:true, items:[
-      ["ChatGPT",{t:"ChatGPT",s:"ChatGPT",e:"ChatGPT"}],["Claude",{t:"Claude",s:"Claude",e:"Claude"}],
-      ["Gemini",{t:"Gemini",s:"Gemini",e:"Gemini"}],["Perplexity",{t:"Perplexity",s:"Perplexity",e:"Perplexity"}],
-      ["Copilot",{t:"Copilot",s:"Copilot",e:"Copilot"}],["Notion AI",{t:"Notion AI",s:"Notion AI",e:"Notion AI"}],
-      ["Midjourney",{t:"Midjourney",s:"Midjourney",e:"Midjourney"}],["Canva AI",{t:"Canva AI",s:"Canva AI",e:"Canva AI"}],
-      ["n8n",{t:"n8n",s:"n8n",e:"n8n"}],["Cursor",{t:"Cursor",s:"Cursor",e:"Cursor"}],
+      ["ChatBot",{t:"ChatBot（ChatGPT、Gemini、Claude…）",s:"ChatBot（ChatGPT、Gemini、Claude…）",e:"ChatBot (ChatGPT, Gemini, Claude…)"}],
+      ["GUI Agent",{t:"GUI Agent（Claude.ai、Codex Projects…）",s:"GUI Agent（Claude.ai、Codex Projects…）",e:"GUI-based AI Agent (Claude.ai, Codex Projects…)"}],
+      ["CLI Agent",{t:"CLI Agent（Claude Code、Codex CLI…）",s:"CLI Agent（Claude Code、Codex CLI…）",e:"CLI-based AI Agent (Claude Code, Codex CLI…)"}],
+      ["AI IDE",{t:"AI IDE（Cursor、Antigravity…）",s:"AI IDE（Cursor、Antigravity…）",e:"AI IDE (Cursor, Antigravity…)"}],
       ["Other",{t:"其他",s:"其他",e:"Other"}],["None",{t:"沒用過",s:"没用过",e:"None"}] ]},
     painPoints: { other:true, items:[
-      ["Does not know how to start",{t:"不知道怎麼開始",s:"不知道怎么开始",e:"Don't know how to start"}],
-      ["Does not know which AI tools to use",{t:"不知道用哪個工具",s:"不知道用哪个工具",e:"Don't know which tools to use"}],
-      ["Does not know how to write prompts",{t:"不會寫 prompt",s:"不会写 prompt",e:"Don't know how to write prompts"}],
-      ["Does not know how to apply AI to real work",{t:"不知道怎麼用在工作",s:"不知道怎么用在工作",e:"Don't know how to apply AI to work"}],
-      ["Wants to automate repetitive tasks",{t:"想自動化重複工作",s:"想自动化重复工作",e:"Want to automate repetitive tasks"}],
-      ["Wants to build AI agents",{t:"想做 AI agent",s:"想做 AI agent",e:"Want to build AI agents"}],
-      ["Wants team training",{t:"想做團隊培訓",s:"想做团队培训",e:"Want team training"}],
+      ["Reliability",{t:"可靠性｜輸出品質不穩，不確定何時能信任",s:"可靠性｜输出质量不稳，不确定何时能信任",e:"Reliability | inconsistent output quality"}],
+      ["Getting started",{t:"上手門檻｜工具太多、不知從何開始",s:"上手门槛｜工具太多、不知从何开始",e:"Getting started | too many tools, hard to begin"}],
+      ["Integration",{t:"整合｜難以融入現有工作流程",s:"整合｜难以融入现有工作流程",e:"Integration | hard to fit into my workflow"}],
+      ["Cost",{t:"成本｜費用或 token 消耗太高",s:"成本｜费用或 token 消耗太高",e:"Cost | fees or token usage too high"}],
+      ["Privacy & security",{t:"隱私安全｜擔心資料外洩或資安風險",s:"隐私安全｜担心资料外泄或资安风险",e:"Privacy & security | worried about data leaks"}],
+      ["Not started yet",{t:"尚未使用｜還沒用過 AI 工具",s:"尚未使用｜还没用过 AI 工具",e:"Haven't used AI tools yet"}],
       ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
     learningGoals: { other:true, items:[
-      ["Use AI for work efficiency",{t:"工作效率",s:"工作效率",e:"Work efficiency"}],
-      ["Use AI for study",{t:"學習",s:"学习",e:"Study & learning"}],
-      ["Use AI for content creation",{t:"內容創作",s:"内容创作",e:"Content creation"}],
-      ["Use AI for marketing",{t:"行銷",s:"营销",e:"Marketing"}],
-      ["Use AI for business automation",{t:"商業自動化",s:"商业自动化",e:"Business automation"}],
-      ["Use AI for coding / product building",{t:"寫程式 / 做產品",s:"写程序 / 做产品",e:"Coding / product building"}],
-      ["Build AI agent",{t:"做 AI agent",s:"做 AI agent",e:"Build an AI agent"}],
-      ["Career development",{t:"職涯發展",s:"职业发展",e:"Career development"}],
+      ["Improve efficiency",{t:"想用 AI 提升工作或學習效率",s:"想用 AI 提升工作或学习效率",e:"Boost work / study efficiency with AI"}],
+      ["Understand AI at work",{t:"想了解 AI 在職場上的應用",s:"想了解 AI 在职场上的应用",e:"Understand AI applications at work"}],
+      ["Exploring AI",{t:"AI 發展很快，來了解一下",s:"AI 发展很快，来了解一下",e:"AI moves fast — here to explore"}],
+      ["Boost resume",{t:"想為履歷增加競爭力",s:"想为履历增加竞争力",e:"Strengthen my resume / CV"}],
+      ["Just curious",{t:"純粹好奇",s:"纯粹好奇",e:"Just curious"}],
       ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
     productInterest: { other:false, items:[
       ["Advanced Course",{t:"進階課程",s:"进阶课程",e:"Advanced course"}],
@@ -278,6 +294,15 @@
       ["Corporate Training",{t:"企業內訓",s:"企业内训",e:"Corporate training"}],
       ["AI Agent Build",{t:"AI Agent 建置",s:"AI Agent 搭建",e:"AI Agent build"}],
       ["Not Sure Yet",{t:"還不確定",s:"还不确定",e:"Not sure yet"}] ]},
+    yearsToGrad: { ph:true, other:false, items:[
+      ["<1 year",{t:"不到 1 年",s:"不到 1 年",e:"Less than 1 year"}],["1-2 years",{t:"1–2 年",s:"1–2 年",e:"1–2 years"}],
+      ["2-3 years",{t:"2–3 年",s:"2–3 年",e:"2–3 years"}],["3+ years",{t:"3 年以上",s:"3 年以上",e:"3+ years"}] ]},
+    targetRoles: { other:false, items:[
+      ["Product Manager",{t:"產品經理",s:"产品经理",e:"Product Manager"}],
+      ["Startup / Own Product",{t:"創業 / 自己做產品",s:"创业 / 自己做产品",e:"Startup / own product"}],
+      ["Designer",{t:"設計師",s:"设计师",e:"Designer"}],["Engineer",{t:"工程師",s:"工程师",e:"Engineer"}],
+      ["Marketing",{t:"行銷",s:"营销",e:"Marketing"}],["Consultant",{t:"顧問",s:"顾问",e:"Consultant"}],
+      ["Not sure yet",{t:"還不確定",s:"还不确定",e:"Not sure yet"}] ]},
     leadSource: { ph:true, other:true, items:[
       ["Instagram",{t:"Instagram",s:"Instagram",e:"Instagram"}],["Facebook",{t:"Facebook",s:"Facebook",e:"Facebook"}],
       ["Threads",{t:"Threads",s:"Threads",e:"Threads"}],["Xiaohongshu",{t:"小紅書",s:"小红书",e:"Xiaohongshu"}],
@@ -346,6 +371,19 @@
   function toggleOther(input, show){ input.classList.toggle("show", show); input.required = show; if(!show) input.value=""; }
   wireOther();
 
+  // 學生條件題：身份是學生（大學生/碩士/博士/MBA）才顯示
+  const STUDENT = ["Undergraduate","Master's","PhD","MBA"];
+  function toggleStudent(){
+    const show = STUDENT.includes($("customerType").value);
+    $("studentSection").style.display = show ? "" : "none";
+    if(!show){
+      $("fieldOfStudy").value=""; $("yearsToGraduation").value="";
+      document.querySelectorAll('.chips[data-group="targetRoles"] input:checked').forEach(i=>i.checked=false);
+    }
+  }
+  $("customerType").addEventListener("change", toggleStudent);
+  toggleStudent();
+
   // 語言切換
   function setLang(lang){
     LANG = lang; const k = LK[lang];
@@ -396,6 +434,9 @@
       location: selVal("location"),
       customerType: selVal("customerType"),
       company: $("company").value.trim(),
+      fieldOfStudy: $("fieldOfStudy").value.trim(),
+      yearsToGraduation: $("yearsToGraduation").value,
+      targetRoles: collectGroup("targetRoles"),
       aiExperience: $("aiExperience").value,
       toolsUsed: collectGroup("toolsUsed"),
       painPoints: collectGroup("painPoints"),
@@ -419,6 +460,7 @@
       showStatus(true, T().ok_msg[k()] + payload.email + (LANG==="en" ? "." : "。"));
       $("reg").reset();
       document.querySelectorAll(".other-input").forEach(i=>toggleOther(i,false));
+      toggleStudent();
     } catch (err) {
       showStatus(false, T().err_msg[k()] + err.message + T().err_tail[k()]);
     } finally { btn.disabled = false; btn.textContent = T().btn_submit[k()]; }
