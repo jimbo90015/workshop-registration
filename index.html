@@ -192,9 +192,20 @@
           <input class="other-input" id="location_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
         </div>
         <div class="field">
+          <label class="q" for="city" data-i18n="q_city">城市（選填）</label>
+          <input id="city" type="text" autocomplete="address-level2">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
           <label class="q" for="customerType"><span data-i18n="q_customerType">你目前的身份</span><span class="req">*</span></label>
           <select id="customerType" required data-group="customerType"></select>
           <input class="other-input" id="customerType_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
+        </div>
+        <div class="field">
+          <label class="q" for="ageRange" data-i18n="q_age">年齡（選填）</label>
+          <select id="ageRange" data-group="ageRange"></select>
         </div>
       </div>
 
@@ -310,6 +321,8 @@
     q_location:   { t:"所在地區", s:"所在地区", e:"Location" },
     q_customerType:{ t:"你目前的身份", s:"你目前的身份", e:"Which best describes you?" },
     q_company:    { t:"公司 / 學校名稱（選填）", s:"公司 / 学校名称（选填）", e:"Company / school (optional)" },
+    q_city:       { t:"城市（選填）", s:"城市（选填）", e:"City (optional)" },
+    q_age:        { t:"年齡（選填）", s:"年龄（选填）", e:"Age (optional)" },
     q_fieldOfStudy:{ t:"你就讀的科系 / 學院？", s:"你就读的科系 / 学院？", e:"Your field of study / school?" },
     q_yearsToGrad:{ t:"大約幾年後畢業？", s:"大约几年后毕业？", e:"About how many years until you graduate?" },
     q_targetRoles:{ t:"未來想衝刺的職能？（選填，可複選）", s:"未来想冲刺的职能？（选填，可复选）", e:"Roles you're aiming for? (optional)" },
@@ -350,6 +363,10 @@
       ["Professional",{t:"上班族",s:"上班族",e:"Professional"}],["Founder / Entrepreneur",{t:"創業者",s:"创业者",e:"Founder / Entrepreneur"}],
       ["Parent",{t:"家長",s:"家长",e:"Parent"}],["Teacher",{t:"老師",s:"老师",e:"Teacher"}],
       ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    ageRange: { ph:true, other:false, items:[
+      ["Under 18",{t:"18 歲以下",s:"18 岁以下",e:"Under 18"}],["18-22",{t:"18–22",s:"18–22",e:"18–22"}],
+      ["23-30",{t:"23–30",s:"23–30",e:"23–30"}],["31-40",{t:"31–40",s:"31–40",e:"31–40"}],
+      ["41-50",{t:"41–50",s:"41–50",e:"41–50"}],["51+",{t:"51 歲以上",s:"51 岁以上",e:"51+"}] ]},
     aiExperience: { ph:true, other:false, items:[
       ["Complete Beginner",{t:"完全新手",s:"完全新手",e:"Complete beginner"}],["Basic User",{t:"基礎使用者",s:"基础用户",e:"Basic user"}],
       ["Regular User",{t:"一般使用者",s:"常规用户",e:"Regular user"}],["Advanced User",{t:"進階使用者",s:"进阶用户",e:"Advanced user"}],
@@ -521,6 +538,8 @@
       location: selVal("location"),
       customerType: selVal("customerType"),
       company: $("company").value.trim(),
+      city: $("city").value.trim(),
+      ageRange: $("ageRange").value,
       fieldOfStudy: $("fieldOfStudy").value.trim(),
       yearsToGraduation: $("yearsToGraduation").value,
       targetRoles: collectGroup("targetRoles"),
