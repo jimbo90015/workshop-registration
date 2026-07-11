@@ -6,24 +6,24 @@
 <title>AI Workshop 報名表 · Registration</title>
 <style>
   :root{
-    --bg:#eef0f5; --card:#ffffff; --field:#f6f7fa; --border:#e4e7ee; --border-strong:#cdd3dd;
-    --fg:#151922; --muted:#5a6474; --faint:#8a93a3;
-    --accent:#4f46e5; --accent-weak:#eef0ff; --accent-fg:#ffffff;
-    --ok:#0b8a5b; --ok-bg:#e6f6ee; --err:#c62828; --err-bg:#fdecec;
-    --ring:0 0 0 4px color-mix(in srgb, var(--accent) 20%, transparent);
-    --shadow:0 1px 2px rgba(16,24,40,.05), 0 10px 34px rgba(16,24,40,.07);
-    --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a93a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --bg:#ece6dc; --card:#faf7f1; --field:#f2ece2; --border:#ded5c6; --border-strong:#cabca8;
+    --fg:#33302b; --muted:#7d7567; --faint:#a69d8d;
+    --accent:#e07b39; --accent-weak:#fbe7d7; --accent-fg:#ffffff;
+    --ok:#1c9c8e; --ok-bg:#d8efeb; --err:#c0392b; --err-bg:#f7e5e1;
+    --ring:0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent);
+    --shadow:0 1px 2px rgba(70,55,35,.05), 0 10px 34px rgba(70,55,35,.08);
+    --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a69d8d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#0b0d12; --card:#14171e; --field:#1b1f28; --border:#272c37; --border-strong:#3a414f;
-      --fg:#e9edf5; --muted:#9aa4b4; --faint:#6c7583;
-      --accent:#7c83ff; --accent-weak:#1b2030; --accent-fg:#0b0d12;
-      --ok:#34d399; --ok-bg:#0f241c; --err:#f87171; --err-bg:#2a1618;
-      --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 44px rgba(0,0,0,.4);
-      --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c7583' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-      --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230b0d12' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+      --bg:#1b1815; --card:#24201c; --field:#2c2723; --border:#39332d; --border-strong:#4c453d;
+      --fg:#efeae2; --muted:#a89e91; --faint:#7b7264;
+      --accent:#ef9257; --accent-weak:#392a20; --accent-fg:#1b1815;
+      --ok:#4fd1c5; --ok-bg:#123330; --err:#f2837a; --err-bg:#2c1815;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 14px 44px rgba(0,0,0,.45);
+      --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237b7264' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231b1815' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
     }
   }
   *{ box-sizing:border-box; }
@@ -38,12 +38,12 @@
   .langbar button{ appearance:none; border:0; background:transparent; color:var(--muted);
     font:600 .84rem/1 inherit; padding:8px 15px; min-height:36px; border-radius:999px; cursor:pointer; transition:background .16s,color .16s; }
   .langbar button:hover{ color:var(--fg); }
-  .langbar button.active{ background:var(--accent); color:var(--accent-fg); }
+  .langbar button.active{ background:var(--accent-weak); color:var(--accent); box-shadow:inset 0 0 0 1.6px var(--accent); }
 
   /* header */
   .hero{ display:flex; align-items:center; gap:14px; margin:2px 2px 22px; }
   .logo{ width:46px; height:46px; flex:none; border-radius:13px; color:#fff; display:grid; place-items:center;
-    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #a78bfa)); box-shadow:var(--shadow); }
+    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #f6c28a)); box-shadow:var(--shadow); }
   .hero h1{ margin:0; font-size:1.4rem; font-weight:750; letter-spacing:-.01em; }
   .hero p{ margin:3px 0 0; color:var(--muted); font-size:.9rem; }
 
