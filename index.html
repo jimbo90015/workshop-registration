@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Workshop 報名表 · Registration</title>
+<style>
+  :root { --bg:#0b0c10; --card:#15171e; --border:#2a2d38; --fg:#e8eaf0; --muted:#9aa0b0; --accent:#6c8cff; --accent2:#a06cff; --ok:#2ecc71; --err:#ff5c6c; }
+  @media (prefers-color-scheme: light){ :root { --bg:#f5f6fa; --card:#ffffff; --border:#e2e5ee; --fg:#1b1d24; --muted:#6b7180; --accent:#3b5bff; --accent2:#8a3bff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","Noto Sans TC",sans-serif; padding:24px; }
+  .wrap { max-width:640px; margin:0 auto; }
+  .hero { text-align:center; padding:8px 0 20px; }
+  .hero h1 { font-size:1.5rem; margin:0 0 6px; background:linear-gradient(90deg,var(--accent),var(--accent2)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .hero p { color:var(--muted); margin:0; font-size:.95rem; }
+  form { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:24px; }
+  .field { margin-bottom:18px; }
+  label.q { display:block; font-weight:600; margin-bottom:6px; }
+  label.q .req { color:var(--err); margin-left:4px; }
+  .hint { color:var(--muted); font-size:.82rem; margin-top:4px; }
+  input[type=text], input[type=email], input[type=tel], select, textarea {
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+    background:var(--bg); color:var(--fg); font-size:1rem; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); }
+  textarea { min-height:70px; resize:vertical; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chips label { display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border:1px solid var(--border); border-radius:999px; cursor:pointer; font-size:.9rem; user-select:none; }
+  .chips input { accent-color:var(--accent); }
+  .chips label:has(input:checked){ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .consent { display:flex; align-items:flex-start; gap:10px; font-size:.92rem; }
+  .consent input { margin-top:4px; accent-color:var(--accent); }
+  button { width:100%; margin-top:8px; padding:13px; border:0; border-radius:12px; font-size:1.05rem; font-weight:700; color:#fff; cursor:pointer; background:linear-gradient(90deg,var(--accent),var(--accent2)); }
+  button:disabled { opacity:.55; cursor:progress; }
+  .status { margin-top:14px; padding:12px; border-radius:10px; display:none; font-size:.92rem; }
+  .status.show { display:block; }
+  .status.ok { background:color-mix(in srgb,var(--ok) 16%,transparent); border:1px solid var(--ok); }
+  .status.err { background:color-mix(in srgb,var(--err) 16%,transparent); border:1px solid var(--err); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:520px){ .row2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>AI Workshop 報名</h1>
+    <p>填寫下方資料，我們會寄送確認信與課前資料。</p>
+  </div>
+
+  <form id="reg">
+    <!-- ===== 場次 ===== -->
+    <div class="field">
+      <label class="q" for="workshop">你想報名哪一場 Workshop？<span class="req">*</span></label>
+      <select id="workshop" required>
+        <option value="">— 請選擇 —</option>
+        <!-- value = Lark Workshops 表的 record_id；新增場次時在這裡加 option -->
+        <option value="recvp14KDuYGjm" data-name="AI Agent Workshop - London">AI Agent Workshop · London · 2026/07/20</option>
+      </select>
+    </div>
+
+    <!-- ===== 基本資料 ===== -->
+    <div class="row2">
+      <div class="field">
+        <label class="q" for="fullName">姓名<span class="req">*</span></label>
+        <input id="fullName" type="text" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label class="q" for="phone">手機<span class="req">*</span></label>
+        <input id="phone" type="tel" required autocomplete="tel" placeholder="+44 / +886 …">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q" for="email">Email<span class="req">*</span></label>
+      <input id="email" type="email" required autocomplete="email">
+      <div class="hint">用來發送報名確認、付款通知與課程資料。</div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label class="q" for="messagingId">LINE / WhatsApp / WeChat ID</label>
+        <input id="messagingId" type="text">
+      </div>
+      <div class="field">
+        <label class="q" for="preferredChannel">偏好聯絡方式<span class="req">*</span></label>
+        <select id="preferredChannel" required>
+          <option value="">—</option>
+          <option>LINE</option><option>WhatsApp</option><option>Email</option><option>Phone</option>
+          <option>WeChat</option><option>Instagram DM</option><option>Facebook Messenger</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label class="q" for="location">所在地區<span class="req">*</span></label>
+        <select id="location" required>
+          <option value="">—</option>
+          <option>Taiwan</option><option>United Kingdom</option><option>China</option><option>Hong Kong</option>
+          <option>Singapore</option><option>Malaysia</option><option>United States</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="q" for="customerType">你目前的身份<span class="req">*</span></label>
+        <select id="customerType" required>
+          <option value="">—</option>
+          <option>Student</option><option>Professional</option><option>Founder / Entrepreneur</option>
+          <option>Parent</option><option>Teacher</option><option>Company</option><option>School</option>
+          <option>Partner</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q" for="company">公司 / 學校名稱</label>
+      <input id="company" type="text">
+    </div>
+
+    <!-- ===== 需求 (→ Lead) ===== -->
+    <div class="field">
+      <label class="q" for="aiExperience">你目前的 AI 使用程度<span class="req">*</span></label>
+      <select id="aiExperience" required>
+        <option value="">—</option>
+        <option>Complete Beginner</option><option>Basic User</option><option>Regular User</option>
+        <option>Advanced User</option><option>Professional / Developer</option><option>Unknown</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label class="q">你用過哪些 AI 工具？</label>
+      <div class="chips" data-group="toolsUsed">
+        <label><input type="checkbox" value="ChatGPT">ChatGPT</label>
+        <label><input type="checkbox" value="Claude">Claude</label>
+        <label><input type="checkbox" value="Gemini">Gemini</label>
+        <label><input type="checkbox" value="Perplexity">Perplexity</label>
+        <label><input type="checkbox" value="Copilot">Copilot</label>
+        <label><input type="checkbox" value="Notion AI">Notion AI</label>
+        <label><input type="checkbox" value="Midjourney">Midjourney</label>
+        <label><input type="checkbox" value="Canva AI">Canva AI</label>
+        <label><input type="checkbox" value="n8n">n8n</label>
+        <label><input type="checkbox" value="Cursor">Cursor</label>
+        <label><input type="checkbox" value="Other">Other</label>
+        <label><input type="checkbox" value="None">None</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q">你最想透過 AI 解決什麼問題？<span class="req">*</span></label>
+      <div class="chips" data-group="painPoints">
+        <label><input type="checkbox" value="Does not know how to start">不知道怎麼開始</label>
+        <label><input type="checkbox" value="Does not know which AI tools to use">不知道用哪個工具</label>
+        <label><input type="checkbox" value="Does not know how to write prompts">不會寫 prompt</label>
+        <label><input type="checkbox" value="Does not know how to apply AI to real work">不知道怎麼用在工作</label>
+        <label><input type="checkbox" value="Wants to automate repetitive tasks">想自動化重複工作</label>
+        <label><input type="checkbox" value="Wants to build AI agents">想做 AI agent</label>
+        <label><input type="checkbox" value="Wants team training">想做團隊培訓</label>
+        <label><input type="checkbox" value="Other">其他</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q">你參加這場 Workshop 的主要目的？<span class="req">*</span></label>
+      <div class="chips" data-group="learningGoals">
+        <label><input type="checkbox" value="Use AI for work efficiency">工作效率</label>
+        <label><input type="checkbox" value="Use AI for study">學習</label>
+        <label><input type="checkbox" value="Use AI for content creation">內容創作</label>
+        <label><input type="checkbox" value="Use AI for marketing">行銷</label>
+        <label><input type="checkbox" value="Use AI for business automation">商業自動化</label>
+        <label><input type="checkbox" value="Use AI for coding / product building">寫程式 / 做產品</label>
+        <label><input type="checkbox" value="Build AI agent">做 AI agent</label>
+        <label><input type="checkbox" value="Career development">職涯發展</label>
+        <label><input type="checkbox" value="Other">其他</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q">你對哪些後續服務有興趣？（選填）</label>
+      <div class="chips" data-group="productInterest">
+        <label><input type="checkbox" value="Advanced Course">進階課程</label>
+        <label><input type="checkbox" value="1-on-1 Consulting">一對一顧問</label>
+        <label><input type="checkbox" value="Corporate Training">企業內訓</label>
+        <label><input type="checkbox" value="AI Agent Build">AI Agent 建置</label>
+        <label><input type="checkbox" value="Not Sure Yet">還不確定</label>
+      </div>
+    </div>
+
+    <!-- ===== 來源 (→ Lead) ===== -->
+    <div class="row2">
+      <div class="field">
+        <label class="q" for="leadSource">你從哪裡知道我們的？<span class="req">*</span></label>
+        <select id="leadSource" required>
+          <option value="">—</option>
+          <option>Instagram</option><option>Facebook</option><option>Threads</option><option>Xiaohongshu</option>
+          <option>TikTok</option><option>YouTube</option><option>Referral</option><option>School</option>
+          <option>Offline Event</option><option>Online Webinar</option><option>Paid Ads</option>
+          <option>Organic Search</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="q" for="referralPerson">推薦人（選填）</label>
+        <input id="referralPerson" type="text">
+      </div>
+    </div>
+
+    <!-- ===== 同意 (→ Registration) ===== -->
+    <div class="field">
+      <label class="consent"><input id="consentContact" type="checkbox" required>
+        <span>我同意主辦方後續就本次報名與我聯絡。<span class="req">*</span></span></label>
+    </div>
+    <div class="field">
+      <label class="consent"><input id="marketingConsent" type="checkbox">
+        <span>我願意收到未來課程與活動資訊。</span></label>
+    </div>
+
+    <button type="submit" id="submitBtn">送出報名</button>
+    <div class="status" id="status"></div>
+  </form>
+</div>
+
+<script>
+  // ⚙️ 設定：填入你的 n8n webhook URL（Production 或 Test）
+  const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
+
+  const $ = (id) => document.getElementById(id);
+  const collectGroup = (name) =>
+    [...document.querySelectorAll(`[data-group="${name}"] input:checked`)].map(i => i.value);
+
+  $("reg").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const ws = $("workshop");
+    const payload = {
+      workshopRecordId: ws.value,
+      workshopName: ws.selectedOptions[0]?.dataset.name || "",
+      fullName: $("fullName").value.trim(),
+      phone: $("phone").value.trim(),
+      email: $("email").value.trim(),
+      messagingId: $("messagingId").value.trim(),
+      preferredChannel: $("preferredChannel").value,
+      location: $("location").value,
+      customerType: $("customerType").value,
+      company: $("company").value.trim(),
+      aiExperience: $("aiExperience").value,
+      toolsUsed: collectGroup("toolsUsed"),
+      painPoints: collectGroup("painPoints"),
+      learningGoals: collectGroup("learningGoals"),
+      productInterest: collectGroup("productInterest"),
+      leadSource: $("leadSource").value,
+      referralPerson: $("referralPerson").value.trim(),
+      consentContact: $("consentContact").checked,
+      marketingConsent: $("marketingConsent").checked,
+      submittedAt: new Date().toISOString()
+    };
+    if (payload.painPoints.length === 0 || payload.learningGoals.length === 0) {
+      return showStatus(false, "請至少選一個「想解決的問題」和「參加目的」。");
+    }
+    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = "送出中…";
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      showStatus(true, "報名成功！確認信會寄到 " + payload.email + "。");
+      $("reg").reset();
+    } catch (err) {
+      showStatus(false, "送出失敗：" + err.message + "。請稍後再試或直接聯絡我們。");
+    } finally { btn.disabled = false; btn.textContent = "送出報名"; }
+  });
+
+  function showStatus(ok, msg){
+    const s = $("status");
+    s.className = "status show " + (ok ? "ok" : "err");
+    s.textContent = msg;
+    s.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+</script>
+</body>
+</html>
