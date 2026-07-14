@@ -76,6 +76,7 @@
   .chips label:has(input:checked){ border-color:var(--accent); background:var(--accent-weak); }
   .chips label:has(input:checked)::before{ background:var(--accent) var(--check) center/13px no-repeat; border-color:var(--accent); }
   .chips label:focus-within{ border-color:var(--accent); box-shadow:var(--ring); }
+  #intentChips label::before{ border-radius:999px; }
 
   /* consent */
   .consent{ display:flex; align-items:flex-start; gap:12px; font-size:.9rem; color:var(--fg); line-height:1.55; cursor:pointer; }
@@ -138,6 +139,13 @@
           <!-- value = Lark Workshops 表的 record_id；新增場次時在這裡加 option（顯示文字不進 i18n） -->
           <option value="recvp14KDuYGjm" data-name="AI Agent Workshop - London">AI Agent Workshop · London · 2026/07/11</option>
         </select>
+      </div>
+      <div class="field">
+        <label class="q"><span data-i18n="q_intent">你這次想？</span><span class="req">*</span></label>
+        <div class="chips" id="intentChips">
+          <label><input type="radio" name="intent" value="register" checked><span data-i18n="intent_register">報名這一場</span></label>
+          <label><input type="radio" name="intent" value="notify"><span data-i18n="intent_notify">這場時間不行——新場次開放時通知我</span></label>
+        </div>
       </div>
     </div>
 
@@ -290,7 +298,7 @@
       </div>
     </div>
 
-    <button type="submit" id="submitBtn" data-i18n="btn_submit">送出報名</button>
+    <button type="submit" id="submitBtn">送出報名</button>
     <div class="status" id="status"></div>
   </form>
 </div>
@@ -309,6 +317,9 @@
     sec_needs:    { t:"你的需求與背景", s:"你的需求与背景", e:"Your needs & background" },
     sec_source:   { t:"最後幾題", s:"最后几题", e:"Almost done" },
     q_workshop:   { t:"你想報名哪一場 Workshop？", s:"你想报名哪一场 Workshop？", e:"Which workshop would you like to join?" },
+    q_intent:     { t:"你這次想？", s:"你这次想？", e:"What would you like to do?" },
+    intent_register:{ t:"報名這一場", s:"报名这一场", e:"Register for this workshop" },
+    intent_notify:{ t:"這場時間不行——新場次開放時通知我", s:"这场时间不行——新场次开放时通知我", e:"Can't make this one — notify me about new workshops" },
     opt_ph:       { t:"— 請選擇 —", s:"— 请选择 —", e:"— Select —" },
     q_name:       { t:"姓名", s:"姓名", e:"Full name" },
     q_phone:      { t:"手機（選填）", s:"手机（选填）", e:"Phone (optional)" },
@@ -337,9 +348,11 @@
     consent1:     { t:"我同意主辦方後續就本次報名與我聯絡。", s:"我同意主办方后续就本次报名与我联络。", e:"I agree to be contacted about this registration." },
     consent2:     { t:"我願意收到未來課程與活動資訊。", s:"我愿意收到未来课程与活动资讯。", e:"I'd like to receive news about future courses and events." },
     btn_submit:   { t:"送出報名", s:"送出报名", e:"Submit registration" },
+    btn_submit_notify:{ t:"送出，等新場次通知我", s:"送出，等新场次通知我", e:"Submit — notify me about new workshops" },
     btn_submitting:{ t:"送出中…", s:"送出中…", e:"Submitting…" },
     err_pain_goal:{ t:"請至少選一個「想解決的問題」和「參加目的」。", s:"请至少选一个「想解决的问题」和「参加目的」。", e:"Please pick at least one pain point and one goal." },
     ok_msg:       { t:"報名成功！確認信會寄到 ", s:"报名成功！确认信会寄到 ", e:"Registered! A confirmation will be sent to " },
+    ok_notify:    { t:"已登記！新場次開放報名時會通知你：", s:"已登记！新场次开放报名时会通知你：", e:"You're on the list! We'll notify you at " },
     err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
     err_tail:     { t:"。請稍後再試或直接聯絡我們。", s:"。请稍后再试或直接联络我们。", e:". Please try again later or contact us." }
   };
@@ -421,6 +434,12 @@
   const LK = { "zh-Hant":"t", "zh-Hans":"s", "en":"e" };
   let LANG = detectLang();
 
+  // intent：報名 or 等新場次通知（只用 I18N/LK/LANG，避免 const T/k 的 TDZ）
+  function intentVal(){ return document.querySelector('input[name="intent"]:checked')?.value || "register"; }
+  function updateBtn(){
+    $("submitBtn").textContent = I18N[intentVal()==="notify" ? "btn_submit_notify" : "btn_submit"][LK[LANG]];
+  }
+
   function detectLang(){
     const saved = localStorage.getItem("reg_lang");
     if (saved && LK[saved]) return saved;
@@ -498,6 +517,7 @@
     document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const key=el.dataset.i18nPh; if(I18N[key]) el.placeholder = I18N[key][k]; });
     translatable.forEach(({el,map,attr})=>{ if(attr==="text") el.textContent = map[k]; });
     document.querySelectorAll(".langbar button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
+    updateBtn();
   }
   document.querySelectorAll(".langbar button").forEach(b=> b.addEventListener("click", ()=> setLang(b.dataset.lang)));
   setLang(LANG);
@@ -522,10 +542,13 @@
   const T = () => I18N;   // shorthand
   const k = () => LK[LANG];
 
+  $("intentChips").addEventListener("change", updateBtn);
+
   $("reg").addEventListener("submit", async (e) => {
     e.preventDefault();
     const ws = $("workshop");
     const payload = {
+      intent: intentVal(),
       workshopRecordId: ws.value,
       workshopName: ws.selectedOptions[0]?.dataset.name || "",
       formLang: LANG,
@@ -563,13 +586,14 @@
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
-      showStatus(true, T().ok_msg[k()] + payload.email + (LANG==="en" ? "." : "。"));
+      const okText = payload.intent === "notify" ? T().ok_notify[k()] : T().ok_msg[k()];
+      showStatus(true, okText + payload.email + (LANG==="en" ? "." : "。"));
       $("reg").reset();
       document.querySelectorAll(".other-input").forEach(i=>toggleOther(i,false));
       toggleStudent();
     } catch (err) {
       showStatus(false, T().err_msg[k()] + err.message + T().err_tail[k()]);
-    } finally { btn.disabled = false; btn.textContent = T().btn_submit[k()]; }
+    } finally { btn.disabled = false; updateBtn(); }
   });
 
   function showStatus(ok, msg){
