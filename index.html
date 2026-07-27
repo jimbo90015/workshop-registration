@@ -135,9 +135,7 @@
       <div class="field">
         <label class="q" for="workshop"><span data-i18n="q_workshop">你想報名哪一場 Workshop？</span><span class="req">*</span></label>
         <select id="workshop" required>
-          <option value="" data-i18n="opt_ph">— 請選擇 —</option>
-          <!-- value = Lark Workshops 表的 record_id；新增場次時在這裡加 option（顯示文字不進 i18n） -->
-          <option value="recvp14KDuYGjm" data-name="AI Agent Workshop - London">AI Agent Workshop · London · 2026/07/11</option>
+          <option value="">載入開放場次中…</option>
         </select>
       </div>
       <div class="field">
@@ -303,8 +301,10 @@
   </form>
 </div>
 
+<script src="./workshop_catalog.js"></script>
 <script>
   const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
+  const CATALOG_URL = "https://darrenaitool.zeabur.app/webhook/workshop-catalog";
 
   // ===== i18n 字典（t=繁體 s=簡體 e=English）=====
   const I18N = {
@@ -351,6 +351,10 @@
     btn_submit_notify:{ t:"送出，等新場次通知我", s:"送出，等新场次通知我", e:"Submit — notify me about new workshops" },
     btn_submitting:{ t:"送出中…", s:"送出中…", e:"Submitting…" },
     err_pain_goal:{ t:"請至少選一個「想解決的問題」和「參加目的」。", s:"请至少选一个「想解决的问题」和「参加目的」。", e:"Please pick at least one pain point and one goal." },
+    err_no_workshop:{ t:"目前沒有可報名的場次，請選擇「新場次開放時通知我」。", s:"目前没有可报名的场次，请选择「新场次开放时通知我」。", e:"There are no workshops open for registration. Please choose to be notified about new workshops." },
+    err_workshop_closed:{ t:"此場次已關閉報名，請重新選擇場次或登記新場次通知。", s:"此场次已关闭报名，请重新选择场次或登记新场次通知。", e:"This workshop is no longer open. Please choose another workshop or join the notification list." },
+    workshops_loading:{ t:"載入開放場次中…", s:"正在载入开放场次…", e:"Loading open workshops…" },
+    workshops_empty:{ t:"目前沒有開放報名場次", s:"目前没有开放报名场次", e:"No workshops are currently open" },
     ok_msg:       { t:"報名成功！確認信會寄到 ", s:"报名成功！确认信会寄到 ", e:"Registered! A confirmation will be sent to " },
     ok_notify:    { t:"已登記！新場次開放報名時會通知你：", s:"已登记！新场次开放报名时会通知你：", e:"You're on the list! We'll notify you at " },
     err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
@@ -542,7 +546,44 @@
   const T = () => I18N;   // shorthand
   const k = () => LK[LANG];
 
+  async function loadWorkshops(){
+    const ws = $("workshop");
+    ws.disabled = true;
+    try {
+      const res = await fetch(CATALOG_URL);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const workshops = WorkshopCatalog.publicWorkshops(data.items || []);
+      ws.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = workshops.length ? I18N.opt_ph[k()] : I18N.workshops_empty[k()];
+      ws.appendChild(placeholder);
+
+      workshops.forEach((workshop) => {
+        const option = document.createElement("option");
+        option.value = workshop.id;
+        option.dataset.name = workshop.name;
+        option.textContent = WorkshopCatalog.workshopDisplay(workshop);
+        ws.appendChild(option);
+      });
+
+      if (workshops.length) {
+        ws.disabled = false;
+      } else {
+        document.querySelector('input[name="intent"][value="notify"]').checked = true;
+        updateBtn();
+      }
+    } catch (err) {
+      ws.innerHTML = `<option value="">${I18N.workshops_empty[k()]}</option>`;
+      document.querySelector('input[name="intent"][value="notify"]').checked = true;
+      updateBtn();
+    }
+  }
+
   $("intentChips").addEventListener("change", updateBtn);
+  loadWorkshops();
 
   $("reg").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -580,12 +621,18 @@
     if (payload.painPoints.length === 0 || payload.learningGoals.length === 0) {
       return showStatus(false, T().err_pain_goal[k()]);
     }
+    if (payload.intent === "register" && !payload.workshopRecordId) {
+      return showStatus(false, T().err_no_workshop[k()]);
+    }
     const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T().btn_submitting[k()];
     try {
       const res = await fetch(WEBHOOK_URL, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.code === "WORKSHOP_CLOSED" ? T().err_workshop_closed[k()] : (data.message || "HTTP " + res.status));
+      }
       const okText = payload.intent === "notify" ? T().ok_notify[k()] : T().ok_msg[k()];
       showStatus(true, okText + payload.email + (LANG==="en" ? "." : "。"));
       $("reg").reset();
