@@ -49,7 +49,7 @@
   .hint{ color:var(--muted); font-size:.8rem; margin-top:5px; }
 
   /* inputs & selects */
-  input[type=text],input[type=email],input[type=tel],select{
+  input[type=text],input[type=email],input[type=tel],input[type=number],select{
     width:100%; min-height:47px; padding:11px 14px; border-radius:12px; border:1.5px solid var(--border);
     background:var(--field); color:var(--fg); font-size:1rem; outline:none; appearance:none;
     transition:border-color .16s, box-shadow .16s, background .16s; }
@@ -137,6 +137,25 @@
         <select id="workshop" required>
           <option value="">載入開放場次中…</option>
         </select>
+      </div>
+      <div id="ticketFields" style="display:none">
+        <div class="field">
+          <label class="q" for="ticketPlan"><span data-i18n="q_ticket">票種</span><span class="req">*</span></label>
+          <select id="ticketPlan">
+            <option value="">— 請選擇 —</option>
+          </select>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label class="q" for="seatCount" data-i18n="q_seats">席位數</label>
+            <input id="seatCount" type="number" value="1" min="1" step="1">
+          </div>
+          <div class="field">
+            <label class="q" for="discountCode" data-i18n="q_discount">折扣碼（選填）</label>
+            <input id="discountCode" type="text" autocomplete="off">
+          </div>
+        </div>
+        <div class="hint" id="pricePreview"></div>
       </div>
       <div class="field">
         <label class="q"><span data-i18n="q_intent">你這次想？</span><span class="req">*</span></label>
@@ -317,6 +336,11 @@
     sec_needs:    { t:"你的需求與背景", s:"你的需求与背景", e:"Your needs & background" },
     sec_source:   { t:"最後幾題", s:"最后几题", e:"Almost done" },
     q_workshop:   { t:"你想報名哪一場 Workshop？", s:"你想报名哪一场 Workshop？", e:"Which workshop would you like to join?" },
+    q_ticket:     { t:"票種", s:"票种", e:"Ticket type" },
+    q_seats:      { t:"席位數", s:"席位数", e:"Seats" },
+    q_discount:   { t:"折扣碼（選填）", s:"折扣码（选填）", e:"Discount code (optional)" },
+    ticket_select:{ t:"— 請選擇票種 —", s:"— 请选择票种 —", e:"— Select a ticket —" },
+    price_estimate:{ t:"目前小計（折扣於送出時驗證）：", s:"目前小计（折扣于提交时验证）：", e:"Current subtotal (discount is validated on submission): " },
     q_intent:     { t:"你這次想？", s:"你这次想？", e:"What would you like to do?" },
     intent_register:{ t:"報名這一場", s:"报名这一场", e:"Register for this workshop" },
     intent_notify:{ t:"這場時間不行——新場次開放時通知我", s:"这场时间不行——新场次开放时通知我", e:"Can't make this one — notify me about new workshops" },
@@ -437,11 +461,67 @@
   const $ = (id) => document.getElementById(id);
   const LK = { "zh-Hant":"t", "zh-Hans":"s", "en":"e" };
   let LANG = detectLang();
+  let TICKET_PLANS = [];
 
   // intent：報名 or 等新場次通知（只用 I18N/LK/LANG，避免 const T/k 的 TDZ）
   function intentVal(){ return document.querySelector('input[name="intent"]:checked')?.value || "register"; }
   function updateBtn(){
     $("submitBtn").textContent = I18N[intentVal()==="notify" ? "btn_submit_notify" : "btn_submit"][LK[LANG]];
+  }
+
+  function formatMoney(amount, currency) {
+    try {
+      return new Intl.NumberFormat(LANG, { style:"currency", currency }).format(amount);
+    } catch (_) {
+      return `${currency} ${amount.toFixed(2)}`.trim();
+    }
+  }
+
+  function updatePricePreview() {
+    const plan = TICKET_PLANS.find((item) => item.id === $("ticketPlan").value);
+    const seats = Math.max(1, Number($("seatCount").value || 1));
+    $("pricePreview").textContent = plan
+      ? I18N.price_estimate[LK[LANG]] + formatMoney(plan.unitPrice * seats, plan.currency)
+      : "";
+  }
+
+  function updateTicketFields() {
+    const registering = intentVal() === "register";
+    const workshopId = $("workshop").value;
+    const availablePlans = TICKET_PLANS.filter((plan) => plan.workshopId === workshopId);
+    const select = $("ticketPlan");
+    const previousValue = select.value;
+    const show = registering && availablePlans.length > 0;
+
+    $("workshop").required = registering;
+    $("ticketFields").style.display = show ? "" : "none";
+    select.required = show;
+    select.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = I18N.ticket_select[LK[LANG]];
+    select.appendChild(placeholder);
+
+    availablePlans.forEach((plan) => {
+      const option = document.createElement("option");
+      option.value = plan.id;
+      option.textContent = `${plan.name || plan.ticketType} · ${formatMoney(plan.unitPrice, plan.currency)}`;
+      select.appendChild(option);
+    });
+
+    if (show && availablePlans.some((plan) => plan.id === previousValue)) {
+      select.value = previousValue;
+    }
+    if (!show) {
+      select.value = "";
+      $("seatCount").value = "1";
+      $("discountCode").value = "";
+    }
+
+    const selectedPlan = availablePlans.find((plan) => plan.id === select.value);
+    $("seatCount").max = String(selectedPlan?.maxSeats || 1);
+    updatePricePreview();
   }
 
   function detectLang(){
@@ -522,6 +602,7 @@
     translatable.forEach(({el,map,attr})=>{ if(attr==="text") el.textContent = map[k]; });
     document.querySelectorAll(".langbar button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
     updateBtn();
+    updateTicketFields();
   }
   document.querySelectorAll(".langbar button").forEach(b=> b.addEventListener("click", ()=> setLang(b.dataset.lang)));
   setLang(LANG);
@@ -554,6 +635,7 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       const workshops = WorkshopCatalog.publicWorkshops(data.items || []);
+      TICKET_PLANS = WorkshopCatalog.publicTicketPlans(data.ticketPlans || []);
       ws.innerHTML = "";
 
       const placeholder = document.createElement("option");
@@ -575,14 +657,23 @@
         document.querySelector('input[name="intent"][value="notify"]').checked = true;
         updateBtn();
       }
+      updateTicketFields();
     } catch (err) {
+      TICKET_PLANS = [];
       ws.innerHTML = `<option value="">${I18N.workshops_empty[k()]}</option>`;
       document.querySelector('input[name="intent"][value="notify"]').checked = true;
       updateBtn();
+      updateTicketFields();
     }
   }
 
-  $("intentChips").addEventListener("change", updateBtn);
+  $("intentChips").addEventListener("change", () => {
+    updateBtn();
+    updateTicketFields();
+  });
+  $("workshop").addEventListener("change", updateTicketFields);
+  $("ticketPlan").addEventListener("change", updateTicketFields);
+  $("seatCount").addEventListener("input", updatePricePreview);
   loadWorkshops();
 
   $("reg").addEventListener("submit", async (e) => {
@@ -592,6 +683,9 @@
       intent: intentVal(),
       workshopRecordId: ws.value,
       workshopName: ws.selectedOptions[0]?.dataset.name || "",
+      ticketPlanRecordId: $("ticketPlan").value,
+      seatCount: Number($("seatCount").value || 1),
+      discountCode: $("discountCode").value.trim(),
       formLang: LANG,
       fullName: $("fullName").value.trim(),
       phone: $("phone").value.trim(),
@@ -638,6 +732,7 @@
       $("reg").reset();
       document.querySelectorAll(".other-input").forEach(i=>toggleOther(i,false));
       toggleStudent();
+      updateTicketFields();
     } catch (err) {
       showStatus(false, T().err_msg[k()] + err.message + T().err_tail[k()]);
     } finally { btn.disabled = false; updateBtn(); }

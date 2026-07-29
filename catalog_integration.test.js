@@ -11,3 +11,15 @@ test("registration page loads its workshop options from the public catalog", () 
   assert.match(page, /async function loadWorkshops/);
   assert.doesNotMatch(page, /recvp14KDuYGjm/);
 });
+
+test("registration page collects a ticket plan, seat count, and discount code", () => {
+  const page = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+
+  assert.match(page, /id="ticketPlan"/);
+  assert.match(page, /id="seatCount"/);
+  assert.match(page, /id="discountCode"/);
+  assert.match(page, /ticketPlanRecordId/);
+  assert.match(page, /seatCount/);
+  assert.match(page, /discountCode/);
+  assert.match(page, /publicTicketPlans/);
+});
