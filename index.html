@@ -324,6 +324,12 @@
 <script>
   const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
   const CATALOG_URL = "https://darrenaitool.zeabur.app/webhook/workshop-catalog";
+  const SUCCESS_STORAGE_KEY = "workshop_registration_success";
+
+  function clearSuccessState() {
+    sessionStorage.removeItem(SUCCESS_STORAGE_KEY);
+  }
+  window.addEventListener("pageshow", clearSuccessState);
 
   // ===== i18n 字典（t=繁體 s=簡體 e=English）=====
   const I18N = {
@@ -379,8 +385,6 @@
     err_workshop_closed:{ t:"此場次已關閉報名，請重新選擇場次或登記新場次通知。", s:"此场次已关闭报名，请重新选择场次或登记新场次通知。", e:"This workshop is no longer open. Please choose another workshop or join the notification list." },
     workshops_loading:{ t:"載入開放場次中…", s:"正在载入开放场次…", e:"Loading open workshops…" },
     workshops_empty:{ t:"目前沒有開放報名場次", s:"目前没有开放报名场次", e:"No workshops are currently open" },
-    ok_msg:       { t:"報名成功！確認信會寄到 ", s:"报名成功！确认信会寄到 ", e:"Registered! A confirmation will be sent to " },
-    ok_notify:    { t:"已登記！新場次開放報名時會通知你：", s:"已登记！新场次开放报名时会通知你：", e:"You're on the list! We'll notify you at " },
     err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
     err_tail:     { t:"。請稍後再試或直接聯絡我們。", s:"。请稍后再试或直接联络我们。", e:". Please try again later or contact us." }
   };
@@ -727,12 +731,22 @@
       if (!res.ok || data.ok === false) {
         throw new Error(data.code === "WORKSHOP_CLOSED" ? T().err_workshop_closed[k()] : (data.message || "HTTP " + res.status));
       }
-      const okText = payload.intent === "notify" ? T().ok_notify[k()] : T().ok_msg[k()];
-      showStatus(true, okText + payload.email + (LANG==="en" ? "." : "。"));
-      $("reg").reset();
-      document.querySelectorAll(".other-input").forEach(i=>toggleOther(i,false));
-      toggleStudent();
-      updateTicketFields();
+      const selectedTicket = TICKET_PLANS.find(
+        (plan) => plan.id === payload.ticketPlanRecordId,
+      );
+      const successState = {
+        version: 1,
+        intent: payload.intent,
+        lang: LANG,
+        email: payload.email,
+        ...(payload.intent === "register" ? {
+          workshopName: payload.workshopName,
+          ticketName: selectedTicket?.name || selectedTicket?.ticketType || "",
+          seatCount: payload.seatCount,
+        } : {}),
+      };
+      sessionStorage.setItem(SUCCESS_STORAGE_KEY, JSON.stringify(successState));
+      window.location.assign("./success.html");
     } catch (err) {
       showStatus(false, T().err_msg[k()] + err.message + T().err_tail[k()]);
     } finally { btn.disabled = false; updateBtn(); }
