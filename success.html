@@ -44,10 +44,11 @@
   .return-link{ display:block; width:100%; min-height:52px; padding:13px 16px; border-radius:13px; background:var(--accent-strong); color:var(--accent-fg); box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent); font-weight:700; text-decoration:none; }
   .return-link:hover{ background:color-mix(in srgb, var(--accent) 88%, #000); }
   @media(max-width:520px){
-    body{ padding:14px 14px 32px; overflow-x:hidden; }
+    body{ padding:8px 14px 32px; overflow-x:hidden; }
     .success-card{ padding:20px 18px 18px; border-radius:16px; }
     .langbar button{ padding-inline:11px; }
-    .summary{ padding:13px; }
+    .summary{ padding:11px; }
+    .summary-title{ margin-bottom:8px; }
   }
   @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
 </style>
@@ -90,9 +91,9 @@
   const I18N = {
     "zh-Hant": {
       registerTitle: "報名已完成",
-      registerLead: "我們會將報名確認寄送至",
+      registerLead: "我們會將報名確認寄送至你的 Email。",
       notifyTitle: "通知登記已完成",
-      notifyLead: "新場次開放時，我們會通知此 Email：",
+      notifyLead: "新場次開放時，我們會透過 Email 通知你。",
       summaryTitle: "報名摘要",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -108,9 +109,9 @@
     },
     "zh-Hans": {
       registerTitle: "报名已完成",
-      registerLead: "我们会将报名确认寄送至",
+      registerLead: "我们会将报名确认寄送至你的 Email。",
       notifyTitle: "通知登记已完成",
-      notifyLead: "新场次开放时，我们会通知此 Email：",
+      notifyLead: "新场次开放时，我们会通过 Email 通知你。",
       summaryTitle: "报名摘要",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -126,9 +127,9 @@
     },
     "en": {
       registerTitle: "Registration complete",
-      registerLead: "We will send your registration confirmation to",
+      registerLead: "We will send your registration confirmation by email.",
       notifyTitle: "Notification request received",
-      notifyLead: "We will notify this email address when new openings are available:",
+      notifyLead: "We will notify you by email when new openings are available.",
       summaryTitle: "Registration summary",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -204,7 +205,7 @@
 
     if (state.intent === "register") {
       title.textContent = copy.registerTitle;
-      lead.textContent = `${copy.registerLead} ${state.email}.`;
+      lead.textContent = copy.registerLead;
       addRow(copy.emailLabel, state.email);
       addRow(copy.workshopLabel, state.workshopName);
       addRow(copy.ticketLabel, state.ticketName);
@@ -214,8 +215,8 @@
     }
 
     title.textContent = copy.notifyTitle;
-    lead.textContent = `${copy.notifyLead} ${state.email}.`;
-    summary.hidden = true;
+    lead.textContent = copy.notifyLead;
+    addRow(copy.emailLabel, state.email);
     nextStep.textContent = copy.notifyNext;
   }
 

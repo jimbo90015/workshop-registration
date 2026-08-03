@@ -327,12 +327,13 @@ test("success page wraps long email content", () => {
 });
 
 test("success page renders valid registration details at runtime", () => {
+  const email = "extremely.long.local.verification.address-that-must-wrap.without-horizontal-overflow@example-workshop-registration.test";
   const { elements, document } = runSuccessPage({
     state: {
       version: 1,
       intent: "register",
       lang: "en",
-      email: "person@example.com",
+      email,
       workshopName: "AI Fundamentals",
       ticketName: "Standard",
       seatCount: 2,
@@ -344,20 +345,35 @@ test("success page renders valid registration details at runtime", () => {
   assert.equal(elements.successIcon.textContent, "✓");
   assert.deepEqual(
     elements.summaryRows.children.map((row) => row.children.map((cell) => cell.textContent)),
-    [["Email", "person@example.com"], ["Workshop", "AI Fundamentals"], ["Ticket", "Standard"], ["Seats", "2 seats"]],
+    [["Email", email], ["Workshop", "AI Fundamentals"], ["Ticket", "Standard"], ["Seats", "2 seats"]],
+  );
+  assert.doesNotMatch(elements.lead.textContent, new RegExp(email));
+  assert.equal(
+    [elements.lead.textContent, ...elements.summaryRows.children.flatMap((row) => row.children.map((cell) => cell.textContent))]
+      .join(" ").split(email).length - 1,
+    1,
   );
 });
 
-test("success page omits registration-only rows for notification requests at runtime", () => {
+test("success page keeps notification email in the summary instead of the lead", () => {
+  const email = "extremely.long.local.verification.address-that-must-wrap.without-horizontal-overflow@example-workshop-registration.test";
   const { elements, document } = runSuccessPage({
-    state: { version: 1, intent: "notify", lang: "en", email: "person@example.com" },
+    state: { version: 1, intent: "notify", lang: "en", email },
   });
 
   assert.equal(document.title, "AI Workshop registration complete");
   assert.equal(elements.title.textContent, "Notification request received");
-  assert.equal(elements.summary.hidden, true);
-  assert.equal(elements.summaryRows.children.length, 0);
-  assert.match(elements.lead.textContent, /person@example\.com/);
+  assert.equal(elements.summary.hidden, false);
+  assert.deepEqual(
+    elements.summaryRows.children.map((row) => row.children.map((cell) => cell.textContent)),
+    [["Email", email]],
+  );
+  assert.doesNotMatch(elements.lead.textContent, new RegExp(email));
+  assert.equal(
+    [elements.lead.textContent, ...elements.summaryRows.children.flatMap((row) => row.children.map((cell) => cell.textContent))]
+      .join(" ").split(email).length - 1,
+    1,
+  );
 });
 
 test("success page renders neutral fallback content for missing or malformed state at runtime", () => {
