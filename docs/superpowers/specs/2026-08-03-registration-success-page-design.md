@@ -89,7 +89,7 @@ Rules:
 - `version`, `intent`, `lang`, and `email` are required.
 - `workshopName`, `ticketName`, and `seatCount` are included only for registration.
 - The state is created only after the server confirms success.
-- The form removes any old value before beginning a new submission, preventing an earlier success from being reused after a failed attempt.
+- The form removes any old value on `pageshow`, covering both initial loads and bfcache restores so stale success state is not reused.
 - The success page validates the required fields and allowed enum values before rendering success.
 - The value remains available for refreshes in the same tab and naturally disappears when that tab is closed.
 - No email address or summary field is placed in query parameters, hashes, analytics events, or page titles.

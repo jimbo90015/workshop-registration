@@ -322,8 +322,29 @@ test("success page uses AA-contrast warm text and control colors", () => {
   });
 });
 
-test("success page wraps long email content", () => {
-  assert.match(readSuccessPage(), /\.lead\{[^}]*overflow-wrap:anywhere;/);
+test("success page gives keyboard focus a high-contrast opaque outline", () => {
+  const successPage = readSuccessPage();
+  const tokens = Object.fromEntries(
+    [...successPage.matchAll(/(--[\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map(([, name, color]) => [name, color]),
+  );
+  const focus = tokens["--focus"];
+
+  assert.ok(focus, "expected a dedicated focus token");
+  ["--bg", "--field", "--accent-weak", "--card"].forEach((background) => {
+    assert.ok(contrastRatio(focus, tokens[background]) >= 3, `${focus} on ${tokens[background]} must meet focus contrast`);
+  });
+  [".langbar button:focus-visible", ".primary-link:focus-visible"].forEach((selector) => {
+    const rule = cssRule(successPage, selector);
+    assert.equal(cssProperty(rule, "outline"), "3px solid var(--focus)");
+    assert.equal(cssProperty(rule, "outline-offset"), "3px");
+  });
+});
+
+test("success page wraps the summary email value", () => {
+  const successPage = readSuccessPage();
+
+  assert.match(cssRule(successPage, "dd"), /overflow-wrap:anywhere;/);
+  assert.match(successPage, /\.lead\{[^}]*overflow-wrap:anywhere;/);
 });
 
 test("success page renders valid registration details at runtime", () => {
