@@ -1,7 +1,7 @@
 # Registration Success Page Design
 
-**Date:** 2026-08-03  
-**Status:** Approved in conversation  
+**Date:** 2026-08-03
+**Status:** Approved in conversation
 **Repository:** `jimbo90015/workshop-registration`
 
 ## Problem
