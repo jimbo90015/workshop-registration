@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>AI Workshop 同行者管理</title>
+<style>
+  :root{ --bg:#ece6dc;--card:#faf7f1;--field:#f2ece2;--border:#ded5c6;--fg:#33302b;--muted:#70685b;--accent:#e07b39;--weak:#fbe7d7;--ok:#147d72;--err:#a93428;--ring:0 0 0 4px rgba(224,123,57,.24); }
+  *{box-sizing:border-box} body{margin:0;padding:28px 18px 56px;background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","Noto Sans TC",sans-serif}
+  .wrap{max-width:720px;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}.top h1{font-size:1.35rem;margin:0}.lang{display:flex;gap:4px}.lang button{border:1px solid var(--border);border-radius:999px;background:var(--card);padding:7px 11px;color:var(--muted)}.lang button.active{border-color:var(--accent);color:var(--accent);background:var(--weak)}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(70,55,35,.08)}.summary{padding-bottom:18px;border-bottom:1px solid var(--border)}.summary h2{font-size:1.05rem;margin:0 0 5px}.summary p{margin:0;color:var(--muted)}
+  .person{padding:19px 0;border-bottom:1px solid var(--border)}.person:last-child{border-bottom:0}.person-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.person-head h3{font-size:1rem;margin:0}.badge{font-size:.78rem;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--weak);color:var(--accent)}.badge.done{background:#d8efeb;color:var(--ok)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-size:.82rem;font-weight:650;margin-bottom:5px}input{width:100%;min-height:45px;border:1.5px solid var(--border);border-radius:11px;background:var(--field);padding:10px 12px;font:inherit;color:var(--fg)}input:focus{outline:0;border-color:var(--accent);box-shadow:var(--ring)}input:disabled{opacity:.72}
+  .actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}button.action{border:0;border-radius:11px;padding:10px 13px;font:700 .88rem/1.2 inherit;cursor:pointer}.save{background:var(--accent);color:white}.resend{background:var(--weak);color:var(--accent)}button:disabled{opacity:.55;cursor:progress}.status{padding:14px;border-radius:11px;background:var(--field);color:var(--muted)}.status.err{background:#f7e5e1;color:var(--err)}
+  @media(max-width:560px){body{padding:18px 12px 40px}.top{align-items:flex-start}.panel{padding:18px;border-radius:15px}.grid{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top"><h1 id="title">同行者管理</h1><div class="lang"><button data-lang="zh-Hant">繁體</button><button data-lang="zh-Hans">简体</button><button data-lang="en">EN</button></div></div>
+  <section class="panel" aria-live="polite"><div id="content" class="status">載入中…</div></section>
+</main>
+<script src="./group_registration.js"></script>
+<script>
+  const ENDPOINT = "https://darrenaitool.zeabur.app/webhook/workshop-booking-manage";
+  const token = GroupRegistration.fragmentToken(window.location.hash, "manage");
+  const copy = {
+    "zh-Hant":{title:"同行者管理",loading:"載入中…",invalid:"這個管理連結無效或已過期。",pending:"待補資料",done:"已完成",name:"姓名",email:"Email",save:"儲存並寄出新邀請",resend:"重寄邀請",saved:"已更新並寄出邀請。",sent:"邀請已重寄。",error:"操作失敗，請稍後再試。",seats:"席"},
+    "zh-Hans":{title:"同行者管理",loading:"载入中…",invalid:"这个管理链接无效或已过期。",pending:"待补资料",done:"已完成",name:"姓名",email:"Email",save:"保存并寄出新邀请",resend:"重寄邀请",saved:"已更新并寄出邀请。",sent:"邀请已重寄。",error:"操作失败，请稍后再试。",seats:"席"},
+    en:{title:"Manage companions",loading:"Loading…",invalid:"This management link is invalid or has expired.",pending:"Profile pending",done:"Profile complete",name:"Name",email:"Email",save:"Save and send new invite",resend:"Resend invite",saved:"Updated and invited.",sent:"Invite resent.",error:"Something went wrong. Please try again.",seats:"seats"},
+  };
+  let lang = localStorage.getItem("reg_lang") || "zh-Hant";
+  let booking = null;
+  const content = document.getElementById("content");
+
+  async function call(action, extra = {}) {
+    const response = await fetch(ENDPOINT,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token,action,...extra})});
+    const data = await response.json().catch(()=>({}));
+    if(!response.ok || data.ok===false) throw new Error(data.message || response.status);
+    return data;
+  }
+  function text(value){return document.createTextNode(value || "")}
+  function render(){
+    const t=copy[lang]; document.documentElement.lang=lang; document.title=t.title; document.getElementById("title").textContent=t.title;
+    document.querySelectorAll(".lang button").forEach(button=>button.classList.toggle("active",button.dataset.lang===lang));
+    if(!booking){content.className="status";content.textContent=t.loading;return}
+    const fragment=document.createDocumentFragment();
+    const summary=document.createElement("div"); summary.className="summary";
+    const heading=document.createElement("h2"); heading.append(text(booking.workshopName));
+    const meta=document.createElement("p"); meta.append(text(`${booking.workshopDate} · ${booking.ticketType} · ${booking.seatCount} ${t.seats}`));
+    summary.append(heading,meta); fragment.append(summary);
+    booking.participants.forEach((person)=>{
+      const row=document.createElement("article");row.className="person";row.dataset.id=person.id;
+      const head=document.createElement("div");head.className="person-head";
+      const h3=document.createElement("h3");h3.append(text(person.roleLabel || person.role));
+      const badge=document.createElement("span");badge.className=`badge ${person.profileStatus==="已完成"?"done":""}`;badge.append(text(person.profileStatus==="已完成"?t.done:t.pending));head.append(h3,badge);row.append(head);
+      const grid=document.createElement("div");grid.className="grid";
+      for(const [field,labelValue,type] of [["name",t.name,"text"],["email",t.email,"email"]]){const wrap=document.createElement("div");const label=document.createElement("label");label.append(text(labelValue));const input=document.createElement("input");input.type=type;input.value=person[field]||"";input.dataset.field=field;input.setAttribute("aria-label",labelValue);input.disabled=person.profileStatus==="已完成";wrap.append(label,input);grid.append(wrap)}row.append(grid);
+      if(person.profileStatus!=="已完成"){const actions=document.createElement("div");actions.className="actions";const save=document.createElement("button");save.type="button";save.className="action save";save.textContent=t.save;save.addEventListener("click",()=>replacePerson(row,save));const resend=document.createElement("button");resend.type="button";resend.className="action resend";resend.textContent=t.resend;resend.addEventListener("click",()=>resendInvite(person.id,resend));actions.append(save,resend);row.append(actions)}fragment.append(row)
+    });
+    content.className="";content.replaceChildren(fragment);
+  }
+  async function reload(){try{const data=await call("load");booking=data.booking;render()}catch(error){content.className="status err";content.textContent=copy[lang].invalid}}
+  async function replacePerson(row,button){button.disabled=true;try{await call("replace",{participantId:row.dataset.id,name:row.querySelector('[data-field="name"]').value.trim(),email:row.querySelector('[data-field="email"]').value.trim()});await reload();alert(copy[lang].saved)}catch(error){alert(copy[lang].error)}finally{button.disabled=false}}
+  async function resendInvite(participantId,button){button.disabled=true;try{await call("resend",{participantId});alert(copy[lang].sent)}catch(error){alert(copy[lang].error)}finally{button.disabled=false}}
+  document.querySelectorAll(".lang button").forEach(button=>button.addEventListener("click",()=>{lang=button.dataset.lang;localStorage.setItem("reg_lang",lang);render()}));
+  render();
+  if(token) reload(); else {content.className="status err";content.textContent=copy[lang].invalid}
+</script>
+</body>
+</html>

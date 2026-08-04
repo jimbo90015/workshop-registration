@@ -98,6 +98,11 @@
   .status.err{ background:var(--err-bg); color:var(--err); border:1px solid color-mix(in srgb, var(--err) 38%, transparent); }
 
   .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .attendee-box{ margin-top:16px; padding:16px; border:1px solid var(--border); border-radius:14px; background:var(--field); }
+  .attendee-box .consent{ font-weight:600; }
+  .companion-card{ margin-top:14px; padding-top:14px; border-top:1px solid var(--border); }
+  .companion-title{ margin:0 0 10px; font-size:.86rem; font-weight:700; color:var(--muted); }
+  .companion-card .row2 > .field{ margin-bottom:0; }
   @media(max-width:520px){
     body{ padding:18px 14px 44px; }
     form{ padding:6px 18px 20px; border-radius:16px; }
@@ -130,8 +135,9 @@
 
   <form id="reg">
     <!-- ===== 場次 ===== -->
-    <div class="section">
+    <div class="section" id="bookingSection">
       <p class="sec-title" data-i18n="sec_workshop">報名場次</p>
+      <div id="inviteSummary" style="display:none"></div>
       <div class="field">
         <label class="q" for="workshop"><span data-i18n="q_workshop">你想報名哪一場 Workshop？</span><span class="req">*</span></label>
         <select id="workshop" required>
@@ -156,6 +162,12 @@
           </div>
         </div>
         <div class="hint" id="pricePreview"></div>
+        <div class="attendee-box" id="attendeeFields" style="display:none">
+          <label class="consent"><input id="organizerAttends" type="checkbox" checked>
+            <span data-i18n="organizer_attends">我本人會參加，並佔用一個席位。</span></label>
+          <div class="hint" data-i18n="companions_hint">請先提供每位同行者的姓名與 Email。送出後，他們會收到個人資料補填連結。</div>
+          <div id="companionFields"></div>
+        </div>
       </div>
       <div class="field">
         <label class="q"><span data-i18n="q_intent">你這次想？</span><span class="req">*</span></label>
@@ -321,10 +333,15 @@
 </div>
 
 <script src="./workshop_catalog.js"></script>
+<script src="./group_registration.js"></script>
 <script>
   const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
   const CATALOG_URL = "https://darrenaitool.zeabur.app/webhook/workshop-catalog";
+  const ATTENDEE_URL = "https://darrenaitool.zeabur.app/webhook/workshop-attendee";
   const SUCCESS_STORAGE_KEY = "workshop_registration_success";
+  const ATTENDEE_MODE = new URLSearchParams(window.location.search).get("mode") === "attendee";
+  const ATTENDEE_TOKEN = GroupRegistration.fragmentToken(window.location.hash, "attendee");
+  let ATTENDEE_INVITE = null;
 
   function clearSuccessState() {
     sessionStorage.removeItem(SUCCESS_STORAGE_KEY);
@@ -336,6 +353,10 @@
     title:        { t:"AI Workshop 報名表 · Registration", s:"AI Workshop 报名表 · Registration", e:"AI Workshop Registration" },
     hero_h1:      { t:"AI Workshop 報名", s:"AI Workshop 报名", e:"AI Workshop Registration" },
     hero_p:       { t:"填寫下方資料，我們會寄送確認信與課前資料。", s:"填写下方资料，我们会寄送确认信与课前资料。", e:"Fill in the form below and we'll email your confirmation and pre-course materials." },
+    attendee_title:{ t:"完成參加者資料", s:"完成参加者资料", e:"Complete your attendee profile" },
+    attendee_intro:{ t:"請確認你的個人資料與同意選項。場次與票種已由購票人鎖定。", s:"请确认你的个人资料与同意选项。场次与票种已由购票人锁定。", e:"Confirm your personal details and consent. The workshop and ticket are already reserved." },
+    attendee_invalid:{ t:"這個邀請連結無效或已過期，請聯絡購票人重新寄送。", s:"这个邀请链接无效或已过期，请联系购票人重新发送。", e:"This invite is invalid or expired. Ask the purchaser to send a new link." },
+    attendee_submit:{ t:"確認參加資料", s:"确认参加资料", e:"Confirm attendee profile" },
     sec_workshop: { t:"報名場次", s:"报名场次", e:"Workshop" },
     sec_contact:  { t:"聯絡資料", s:"联络资料", e:"Contact details" },
     sec_about:    { t:"關於你", s:"关于你", e:"About you" },
@@ -347,6 +368,11 @@
     q_discount:   { t:"折扣碼（選填）", s:"折扣码（选填）", e:"Discount code (optional)" },
     ticket_select:{ t:"— 請選擇票種 —", s:"— 请选择票种 —", e:"— Select a ticket —" },
     price_estimate:{ t:"目前小計（折扣於送出時驗證）：", s:"目前小计（折扣于提交时验证）：", e:"Current subtotal (discount is validated on submission): " },
+    organizer_attends:{ t:"我本人會參加，並佔用一個席位。", s:"我本人会参加，并占用一个席位。", e:"I will attend and use one seat." },
+    companions_hint:{ t:"請先提供每位同行者的姓名與 Email。送出後，他們會收到個人資料補填連結。", s:"请先提供每位同行者的姓名与 Email。提交后，他们会收到个人资料补填链接。", e:"Add each companion's name and email. They will receive a personal profile link after submission." },
+    companion_title:{ t:"同行者 {number}", s:"同行者 {number}", e:"Companion {number}" },
+    companion_name:{ t:"姓名", s:"姓名", e:"Name" },
+    companion_email:{ t:"Email", s:"Email", e:"Email" },
     q_intent:     { t:"你這次想？", s:"你这次想？", e:"What would you like to do?" },
     intent_register:{ t:"報名這一場", s:"报名这一场", e:"Register for this workshop" },
     intent_notify:{ t:"這場時間不行——新場次開放時通知我", s:"这场时间不行——新场次开放时通知我", e:"Can't make this one — notify me about new workshops" },
@@ -384,6 +410,8 @@
     err_no_workshop:{ t:"目前沒有可報名的場次，請選擇「新場次開放時通知我」。", s:"目前没有可报名的场次，请选择「新场次开放时通知我」。", e:"There are no workshops open for registration. Please choose to be notified about new workshops." },
     err_workshop_closed:{ t:"此場次已關閉報名，請重新選擇場次或登記新場次通知。", s:"此场次已关闭报名，请重新选择场次或登记新场次通知。", e:"This workshop is no longer open. Please choose another workshop or join the notification list." },
     err_seats:{ t:"席位數必須介於 {min} 至 {max}。", s:"席位数必须介于 {min} 至 {max}。", e:"Seat count must be between {min} and {max}." },
+    err_companions:{ t:"請為每個同行席位填寫姓名與 Email。", s:"请为每个同行席位填写姓名与 Email。", e:"Add a name and email for every companion seat." },
+    err_duplicate_email:{ t:"每位參加者必須使用不同的 Email；若是你本人，請勾選「我本人會參加」。", s:"每位参加者必须使用不同的 Email；如果是你本人，请勾选“我本人会参加”。", e:"Each attendee needs a different email. If this is you, select 'I will attend'." },
     workshops_loading:{ t:"載入開放場次中…", s:"正在载入开放场次…", e:"Loading open workshops…" },
     workshops_empty:{ t:"目前沒有開放報名場次", s:"目前没有开放报名场次", e:"No workshops are currently open" },
     err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
@@ -471,6 +499,10 @@
   // intent：報名 or 等新場次通知（只用 I18N/LK/LANG，避免 const T/k 的 TDZ）
   function intentVal(){ return document.querySelector('input[name="intent"]:checked')?.value || "register"; }
   function updateBtn(){
+    if (ATTENDEE_MODE) {
+      $("submitBtn").textContent = I18N.attendee_submit[LK[LANG]];
+      return;
+    }
     $("submitBtn").textContent = I18N[intentVal()==="notify" ? "btn_submit_notify" : "btn_submit"][LK[LANG]];
   }
 
@@ -488,6 +520,52 @@
     $("pricePreview").textContent = plan
       ? I18N.price_estimate[LK[LANG]] + formatMoney(plan.unitPrice * seats, plan.currency)
       : "";
+  }
+
+  function companionValues() {
+    return [...document.querySelectorAll(".companion-card")].map((card) => ({
+      name: card.querySelector('[data-companion="name"]').value.trim(),
+      email: card.querySelector('[data-companion="email"]').value.trim(),
+    }));
+  }
+
+  function updateAttendeeFields() {
+    const registering = intentVal() === "register";
+    const seats = Math.max(1, Number($("seatCount").value || 1));
+    const show = registering && seats > 1 && Boolean($("ticketPlan").value);
+    const previousValues = companionValues();
+    $("attendeeFields").style.display = show ? "" : "none";
+    if (!show) {
+      $("organizerAttends").checked = true;
+      $("companionFields").replaceChildren();
+      return;
+    }
+
+    const count = GroupRegistration.requiredCompanionCount(
+      seats,
+      $("organizerAttends").checked,
+    );
+    const fragment = document.createDocumentFragment();
+    for (let index = 0; index < count; index += 1) {
+      const card = document.createElement("div");
+      card.className = "companion-card";
+      const title = I18N.companion_title[LK[LANG]].replace("{number}", index + 1);
+      const name = I18N.companion_name[LK[LANG]];
+      const email = I18N.companion_email[LK[LANG]];
+      card.innerHTML = `
+        <p class="companion-title">${title}</p>
+        <div class="row2">
+          <div class="field"><label class="q">${name}<span class="req">*</span></label><input type="text" data-companion="name" autocomplete="off" required></div>
+          <div class="field"><label class="q">${email}<span class="req">*</span></label><input type="email" data-companion="email" autocomplete="off" required></div>
+        </div>`;
+      const previous = previousValues[index];
+      if (previous) {
+        card.querySelector('[data-companion="name"]').value = previous.name;
+        card.querySelector('[data-companion="email"]').value = previous.email;
+      }
+      fragment.appendChild(card);
+    }
+    $("companionFields").replaceChildren(fragment);
   }
 
   function updateTicketFields() {
@@ -532,6 +610,7 @@
       $("seatCount").value = String(selectedPlan.minSeats);
     }
     updatePricePreview();
+    updateAttendeeFields();
   }
 
   function detectLang(){
@@ -611,6 +690,11 @@
     document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const key=el.dataset.i18nPh; if(I18N[key]) el.placeholder = I18N[key][k]; });
     translatable.forEach(({el,map,attr})=>{ if(attr==="text") el.textContent = map[k]; });
     document.querySelectorAll(".langbar button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
+    if (ATTENDEE_MODE) {
+      document.title = I18N.attendee_title[k];
+      document.querySelector(".hero h1").textContent = I18N.attendee_title[k];
+      document.querySelector(".hero p").textContent = I18N.attendee_intro[k];
+    }
     updateBtn();
     updateTicketFields();
   }
@@ -636,6 +720,42 @@
   }
   const T = () => I18N;   // shorthand
   const k = () => LK[LANG];
+
+  async function loadAttendeeInvite() {
+    $("bookingSection").querySelectorAll(":scope > *").forEach((element) => {
+      element.style.display = element.id === "inviteSummary" || element.classList.contains("sec-title") ? "" : "none";
+    });
+    $("submitBtn").disabled = true;
+    if (!ATTENDEE_TOKEN) {
+      showStatus(false, I18N.attendee_invalid[k()]);
+      return;
+    }
+    try {
+      const response = await fetch(ATTENDEE_URL, {
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({action:"load", token:ATTENDEE_TOKEN}),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false || !data.invite) throw new Error("invalid invite");
+      ATTENDEE_INVITE = data.invite;
+      $("fullName").value = data.invite.name || "";
+      $("email").value = data.invite.email || "";
+      $("email").readOnly = true;
+      const summary = $("inviteSummary");
+      const heading = document.createElement("strong");
+      heading.textContent = data.invite.workshopName || "AI Workshop";
+      const detail = document.createElement("div");
+      detail.className = "hint";
+      detail.textContent = [data.invite.workshopDate, data.invite.ticketType]
+        .filter(Boolean).join(" · ");
+      summary.replaceChildren(heading, detail);
+      summary.style.display = "";
+      $("submitBtn").disabled = false;
+    } catch (error) {
+      showStatus(false, I18N.attendee_invalid[k()]);
+    }
+  }
 
   async function loadWorkshops(){
     const ws = $("workshop");
@@ -683,8 +803,41 @@
   });
   $("workshop").addEventListener("change", updateTicketFields);
   $("ticketPlan").addEventListener("change", updateTicketFields);
-  $("seatCount").addEventListener("input", updatePricePreview);
-  loadWorkshops();
+  $("seatCount").addEventListener("input", () => {
+    updatePricePreview();
+    updateAttendeeFields();
+  });
+  $("organizerAttends").addEventListener("change", updateAttendeeFields);
+  if (ATTENDEE_MODE) loadAttendeeInvite();
+  else loadWorkshops();
+
+  async function submitAttendee(profile) {
+    const btn = $("submitBtn");
+    btn.disabled = true;
+    btn.textContent = T().btn_submitting[k()];
+    try {
+      const response = await fetch(ATTENDEE_URL, {
+        method:"POST",
+        headers:{"content-type":"application/json"},
+        body:JSON.stringify({action:"complete", token:ATTENDEE_TOKEN, profile}),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) throw new Error(data.message || `HTTP ${response.status}`);
+      sessionStorage.setItem(SUCCESS_STORAGE_KEY, JSON.stringify({
+        version:1,
+        intent:"attendee",
+        lang:LANG,
+        email:profile.email,
+        workshopName:ATTENDEE_INVITE?.workshopName || "",
+      }));
+      window.location.assign("./success.html");
+    } catch (error) {
+      showStatus(false, T().err_msg[k()] + error.message + T().err_tail[k()]);
+    } finally {
+      btn.disabled = false;
+      updateBtn();
+    }
+  }
 
   $("reg").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -695,6 +848,10 @@
       workshopName: ws.selectedOptions[0]?.dataset.name || "",
       ticketPlanRecordId: $("ticketPlan").value,
       seatCount: Number($("seatCount").value || 1),
+      organizerAttends: Number($("seatCount").value || 1) <= 1
+        ? true
+        : $("organizerAttends").checked,
+      companions: companionValues(),
       discountCode: $("discountCode").value.trim(),
       formLang: LANG,
       fullName: $("fullName").value.trim(),
@@ -725,6 +882,35 @@
     if (payload.painPoints.length === 0 || payload.learningGoals.length === 0) {
       return showStatus(false, T().err_pain_goal[k()]);
     }
+    if (ATTENDEE_MODE) {
+      return submitAttendee({
+        formLang:payload.formLang,
+        fullName:payload.fullName,
+        phone:payload.phone,
+        email:payload.email,
+        messagingPlatform:payload.messagingPlatform,
+        messagingId:payload.messagingId,
+        preferredChannel:payload.preferredChannel,
+        location:payload.location,
+        customerType:payload.customerType,
+        company:payload.company,
+        city:payload.city,
+        ageRange:payload.ageRange,
+        fieldOfStudy:payload.fieldOfStudy,
+        yearsToGraduation:payload.yearsToGraduation,
+        targetRoles:payload.targetRoles,
+        aiExperience:payload.aiExperience,
+        toolsUsed:payload.toolsUsed,
+        painPoints:payload.painPoints,
+        learningGoals:payload.learningGoals,
+        productInterest:payload.productInterest,
+        leadSource:payload.leadSource,
+        referralPerson:payload.referralPerson,
+        consentContact:payload.consentContact,
+        marketingConsent:payload.marketingConsent,
+        submittedAt:payload.submittedAt,
+      });
+    }
     if (payload.intent === "register" && !payload.workshopRecordId) {
       return showStatus(false, T().err_no_workshop[k()]);
     }
@@ -735,6 +921,19 @@
       return showStatus(false, T().err_seats[k()]
         .replace("{min}", selectedPlan.minSeats)
         .replace("{max}", selectedPlan.maxSeats));
+    }
+    if (payload.intent === "register") {
+      const attendeeCheck = GroupRegistration.validateCompanions({
+        seatCount: payload.seatCount,
+        organizerAttends: payload.organizerAttends,
+        organizerEmail: payload.email,
+        companions: payload.companions,
+      });
+      if (!attendeeCheck.ok) {
+        return showStatus(false, attendeeCheck.code === "DUPLICATE_ATTENDEE_EMAIL"
+          ? T().err_duplicate_email[k()]
+          : T().err_companions[k()]);
+      }
     }
     const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T().btn_submitting[k()];
     try {
@@ -754,6 +953,7 @@
           workshopName: payload.workshopName,
           ticketName: selectedPlan?.ticketType || "",
           seatCount: payload.seatCount,
+          managementUrl: data.managementUrl || "",
         } : {}),
       };
       sessionStorage.setItem(SUCCESS_STORAGE_KEY, JSON.stringify(successState));
