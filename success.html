@@ -83,6 +83,7 @@
       <dl id="summaryRows"></dl>
     </section>
     <p class="next-step" id="nextStep"></p>
+    <a class="return-link primary-link" id="manageLink" href="./manage.html" hidden></a>
     <a class="return-link primary-link" id="returnLink" href="./"></a>
   </main>
 </div>
@@ -96,6 +97,8 @@
       registerLead: "我們會將報名確認寄送至你的 Email。",
       notifyTitle: "通知登記已完成",
       notifyLead: "新場次開放時，我們會透過 Email 通知你。",
+      attendeeTitle: "參加資料已完成",
+      attendeeLead: "我們已保存你的個人資料與同意選項。",
       summaryTitle: "報名摘要",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -104,6 +107,8 @@
       seatsSuffix: "位",
       registerNext: "請查看 Email 以取得報名確認與課程資訊。",
       notifyNext: "請留意 Email，取得新場次開放通知。",
+      attendeeNext: "請查看 Email 以取得課程資訊。",
+      manageLabel: "管理同行者",
       fallbackTitle: "找不到近期的報名資料",
       fallbackLead: "請返回表單查看或重新提交報名。",
       returnLabel: "返回報名表",
@@ -114,6 +119,8 @@
       registerLead: "我们会将报名确认寄送至你的 Email。",
       notifyTitle: "通知登记已完成",
       notifyLead: "新场次开放时，我们会通过 Email 通知你。",
+      attendeeTitle: "参加资料已完成",
+      attendeeLead: "我们已保存你的个人资料与同意选项。",
       summaryTitle: "报名摘要",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -122,6 +129,8 @@
       seatsSuffix: "位",
       registerNext: "请查看 Email 以获取报名确认与课程信息。",
       notifyNext: "请留意 Email，获取新场次开放通知。",
+      attendeeNext: "请查看 Email 以获取课程信息。",
+      manageLabel: "管理同行者",
       fallbackTitle: "找不到近期的报名资料",
       fallbackLead: "请返回表单查看或重新提交报名。",
       returnLabel: "返回报名表",
@@ -132,6 +141,8 @@
       registerLead: "We will send your registration confirmation by email.",
       notifyTitle: "Notification request received",
       notifyLead: "We will notify you by email when new openings are available.",
+      attendeeTitle: "Attendee profile complete",
+      attendeeLead: "We saved your personal details and consent choices.",
       summaryTitle: "Registration summary",
       emailLabel: "Email",
       workshopLabel: "Workshop",
@@ -140,6 +151,8 @@
       seatsSuffix: "seats",
       registerNext: "Please check your email for your confirmation and course information.",
       notifyNext: "Please watch your email for new workshop openings.",
+      attendeeNext: "Please check your email for course information.",
+      manageLabel: "Manage companions",
       fallbackTitle: "No recent registration details found",
       fallbackLead: "Return to the form to review or submit your registration.",
       returnLabel: "Return to registration form",
@@ -154,6 +167,7 @@
   const summaryTitle = document.getElementById("summaryTitle");
   const summaryRows = document.getElementById("summaryRows");
   const nextStep = document.getElementById("nextStep");
+  const manageLink = document.getElementById("manageLink");
   const returnLink = document.getElementById("returnLink");
   const langButtons = document.querySelectorAll(".langbar button");
 
@@ -164,7 +178,7 @@
   function readState() {
     try {
       const state = JSON.parse(sessionStorage.getItem(SUCCESS_STORAGE_KEY));
-      if (!state || state.version !== 1 || !["register", "notify"].includes(state.intent) || !LANGS.includes(state.lang) || !isNonEmptyString(state.email)) {
+      if (!state || state.version !== 1 || !["register", "notify", "attendee"].includes(state.intent) || !LANGS.includes(state.lang) || !isNonEmptyString(state.email)) {
         return null;
       }
       return state;
@@ -204,6 +218,7 @@
     successIcon.classList.remove("fallback-icon");
     summaryRows.replaceChildren();
     summary.hidden = false;
+    manageLink.hidden = true;
 
     if (state.intent === "register") {
       title.textContent = copy.registerTitle;
@@ -213,6 +228,20 @@
       addRow(copy.ticketLabel, state.ticketName);
       addRow(copy.seatsLabel, hasDisplayValue(state.seatCount) ? `${state.seatCount} ${copy.seatsSuffix}` : "");
       nextStep.textContent = copy.registerNext;
+      if (typeof state.managementUrl === "string" && state.managementUrl.startsWith("./manage.html#manage=")) {
+        manageLink.href = state.managementUrl;
+        manageLink.textContent = copy.manageLabel;
+        manageLink.hidden = false;
+      }
+      return;
+    }
+
+    if (state.intent === "attendee") {
+      title.textContent = copy.attendeeTitle;
+      lead.textContent = copy.attendeeLead;
+      addRow(copy.emailLabel, state.email);
+      addRow(copy.workshopLabel, state.workshopName);
+      nextStep.textContent = copy.attendeeNext;
       return;
     }
 
@@ -230,6 +259,7 @@
     lead.textContent = copy.fallbackLead;
     summaryRows.replaceChildren();
     summary.hidden = true;
+    manageLink.hidden = true;
     nextStep.textContent = "";
   }
 

@@ -8,7 +8,7 @@ const formPage = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 
 test("confirmed submissions store a concise success state and redirect", () => {
   const responseGuard = formPage.indexOf("if (!res.ok || data.ok === false)");
-  const stateWrite = formPage.indexOf("sessionStorage.setItem(SUCCESS_STORAGE_KEY");
+  const stateWrite = formPage.indexOf("sessionStorage.setItem(SUCCESS_STORAGE_KEY", responseGuard);
   const catchBlock = formPage.indexOf("    } catch (err) {", stateWrite);
 
   assert.match(
@@ -145,7 +145,7 @@ function createStorage(values = {}) {
 
 function runSuccessPage({ state, rawState, browserLang = "en-US", savedLang } = {}) {
   const elements = Object.fromEntries(
-    ["title", "successIcon", "lead", "summary", "summaryTitle", "summaryRows", "nextStep", "returnLink"]
+    ["title", "successIcon", "lead", "summary", "summaryTitle", "summaryRows", "nextStep", "manageLink", "returnLink"]
       .map((id) => [id, new FakeElement()]),
   );
   const languageButtons = ["zh-Hant", "zh-Hans", "en"].map((lang) => {
@@ -211,7 +211,7 @@ test("success page reads the concise registration state", () => {
 
   assert.match(successPage, /const SUCCESS_STORAGE_KEY = "workshop_registration_success";/);
   assert.match(successPage, /state\.intent === "register"/);
-  assert.match(successPage, /\["register", "notify"\]\.includes\(state\.intent\)/);
+  assert.match(successPage, /\["register", "notify", "attendee"\]\.includes\(state\.intent\)/);
 });
 
 test("success page renders notification and fallback states", () => {
