@@ -383,6 +383,7 @@
     err_pain_goal:{ t:"請至少選一個「想解決的問題」和「參加目的」。", s:"请至少选一个「想解决的问题」和「参加目的」。", e:"Please pick at least one pain point and one goal." },
     err_no_workshop:{ t:"目前沒有可報名的場次，請選擇「新場次開放時通知我」。", s:"目前没有可报名的场次，请选择「新场次开放时通知我」。", e:"There are no workshops open for registration. Please choose to be notified about new workshops." },
     err_workshop_closed:{ t:"此場次已關閉報名，請重新選擇場次或登記新場次通知。", s:"此场次已关闭报名，请重新选择场次或登记新场次通知。", e:"This workshop is no longer open. Please choose another workshop or join the notification list." },
+    err_seats:{ t:"席位數必須介於 {min} 至 {max}。", s:"席位数必须介于 {min} 至 {max}。", e:"Seat count must be between {min} and {max}." },
     workshops_loading:{ t:"載入開放場次中…", s:"正在载入开放场次…", e:"Loading open workshops…" },
     workshops_empty:{ t:"目前沒有開放報名場次", s:"目前没有开放报名场次", e:"No workshops are currently open" },
     err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
@@ -483,7 +484,7 @@
 
   function updatePricePreview() {
     const plan = TICKET_PLANS.find((item) => item.id === $("ticketPlan").value);
-    const seats = Math.max(1, Number($("seatCount").value || 1));
+    const seats = Number($("seatCount").value || 1);
     $("pricePreview").textContent = plan
       ? I18N.price_estimate[LK[LANG]] + formatMoney(plan.unitPrice * seats, plan.currency)
       : "";
@@ -510,7 +511,7 @@
     availablePlans.forEach((plan) => {
       const option = document.createElement("option");
       option.value = plan.id;
-      option.textContent = `${plan.name || plan.ticketType} · ${formatMoney(plan.unitPrice, plan.currency)}`;
+      option.textContent = `${plan.ticketType} · ${formatMoney(plan.unitPrice, plan.currency)}`;
       select.appendChild(option);
     });
 
@@ -524,7 +525,12 @@
     }
 
     const selectedPlan = availablePlans.find((plan) => plan.id === select.value);
+    $("seatCount").min = String(selectedPlan?.minSeats || 1);
     $("seatCount").max = String(selectedPlan?.maxSeats || 1);
+    const seatCount = Number($("seatCount").value || 1);
+    if (selectedPlan && !WorkshopCatalog.isSeatCountAllowed(selectedPlan, seatCount)) {
+      $("seatCount").value = String(selectedPlan.minSeats);
+    }
     updatePricePreview();
   }
 
@@ -722,6 +728,14 @@
     if (payload.intent === "register" && !payload.workshopRecordId) {
       return showStatus(false, T().err_no_workshop[k()]);
     }
+    const selectedPlan = TICKET_PLANS.find(
+      (plan) => plan.id === payload.ticketPlanRecordId,
+    );
+    if (selectedPlan && !WorkshopCatalog.isSeatCountAllowed(selectedPlan, payload.seatCount)) {
+      return showStatus(false, T().err_seats[k()]
+        .replace("{min}", selectedPlan.minSeats)
+        .replace("{max}", selectedPlan.maxSeats));
+    }
     const btn = $("submitBtn"); btn.disabled = true; btn.textContent = T().btn_submitting[k()];
     try {
       const res = await fetch(WEBHOOK_URL, {
@@ -731,9 +745,6 @@
       if (!res.ok || data.ok === false) {
         throw new Error(data.code === "WORKSHOP_CLOSED" ? T().err_workshop_closed[k()] : (data.message || "HTTP " + res.status));
       }
-      const selectedTicket = TICKET_PLANS.find(
-        (plan) => plan.id === payload.ticketPlanRecordId,
-      );
       const successState = {
         version: 1,
         intent: payload.intent,
@@ -741,7 +752,7 @@
         email: payload.email,
         ...(payload.intent === "register" ? {
           workshopName: payload.workshopName,
-          ticketName: selectedTicket?.name || selectedTicket?.ticketType || "",
+          ticketName: selectedPlan?.ticketType || "",
           seatCount: payload.seatCount,
         } : {}),
       };
