@@ -57,7 +57,7 @@
       const h3=document.createElement("h3");h3.append(text(person.roleLabel || person.role));
       const badge=document.createElement("span");badge.className=`badge ${person.profileStatus==="已完成"?"done":""}`;badge.append(text(person.profileStatus==="已完成"?t.done:t.pending));head.append(h3,badge);row.append(head);
       const grid=document.createElement("div");grid.className="grid";
-      for(const [field,labelValue,type] of [["name",t.name,"text"],["email",t.email,"email"]]){const wrap=document.createElement("div");const label=document.createElement("label");label.append(text(labelValue));const input=document.createElement("input");input.type=type;input.value=person[field]||"";input.dataset.field=field;input.disabled=person.profileStatus==="已完成";wrap.append(label,input);grid.append(wrap)}row.append(grid);
+      for(const [field,labelValue,type] of [["name",t.name,"text"],["email",t.email,"email"]]){const wrap=document.createElement("div");const label=document.createElement("label");label.append(text(labelValue));const input=document.createElement("input");input.type=type;input.value=person[field]||"";input.dataset.field=field;input.setAttribute("aria-label",labelValue);input.disabled=person.profileStatus==="已完成";wrap.append(label,input);grid.append(wrap)}row.append(grid);
       if(person.profileStatus!=="已完成"){const actions=document.createElement("div");actions.className="actions";const save=document.createElement("button");save.type="button";save.className="action save";save.textContent=t.save;save.addEventListener("click",()=>replacePerson(row,save));const resend=document.createElement("button");resend.type="button";resend.className="action resend";resend.textContent=t.resend;resend.addEventListener("click",()=>resendInvite(person.id,resend));actions.append(save,resend);row.append(actions)}fragment.append(row)
     });
     content.className="";content.replaceChildren(fragment);
@@ -66,7 +66,8 @@
   async function replacePerson(row,button){button.disabled=true;try{await call("replace",{participantId:row.dataset.id,name:row.querySelector('[data-field="name"]').value.trim(),email:row.querySelector('[data-field="email"]').value.trim()});await reload();alert(copy[lang].saved)}catch(error){alert(copy[lang].error)}finally{button.disabled=false}}
   async function resendInvite(participantId,button){button.disabled=true;try{await call("resend",{participantId});alert(copy[lang].sent)}catch(error){alert(copy[lang].error)}finally{button.disabled=false}}
   document.querySelectorAll(".lang button").forEach(button=>button.addEventListener("click",()=>{lang=button.dataset.lang;localStorage.setItem("reg_lang",lang);render()}));
-  if(token) reload(); else {booking={workshopName:"",workshopDate:"",ticketType:"",seatCount:0,participants:[]};content.className="status err";content.textContent=copy[lang].invalid}
+  render();
+  if(token) reload(); else {content.className="status err";content.textContent=copy[lang].invalid}
 </script>
 </body>
 </html>
