@@ -22,4 +22,7 @@ test("registration page collects a ticket plan, seat count, and discount code", 
   assert.match(page, /seatCount/);
   assert.match(page, /discountCode/);
   assert.match(page, /publicTicketPlans/);
+  assert.match(page, /plan\.ticketType/);
+  assert.doesNotMatch(page, /plan\.name \|\| plan\.ticketType/);
+  assert.match(page, /isSeatCountAllowed/);
 });

@@ -1,18 +1,38 @@
 (function (root) {
+  const BUSINESS_TIME_ZONE = "Europe/London";
+
   function textValue(value) {
     if (Array.isArray(value)) return value.map((item) => item.text || "").join("");
     return value || "";
   }
 
-  function publicWorkshops(records) {
+  function londonDate(value) {
+    if (!value) return "";
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: BUSINESS_TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(value));
+  }
+
+  function publicWorkshops(records, now = Date.now()) {
+    const today = londonDate(now);
     return records
-      .filter((record) => record.fields["場次狀態"] === "開放報名")
+      .filter((record) => {
+        const fields = record.fields || {};
+        const date = londonDate(fields["日期"]);
+        return fields["場次狀態"] === "開放報名"
+          && Boolean(date)
+          && (date >= today || fields["允許過期補登"] === true);
+      })
       .map((record) => ({
         id: record.record_id,
         name: textValue(record.fields["場次名稱"]),
         date: record.fields["日期"],
         startTime: textValue(record.fields["開始時間"]),
         location: textValue(record.fields["地點"]),
+        allowPastRegistration: record.fields["允許過期補登"] === true,
       }));
   }
 
@@ -53,19 +73,30 @@
           ? Number.NaN
           : Number(record.fields["單價"]),
         currency: textValue(record.fields["幣別"]),
-        maxSeats: Math.max(1, Number(record.fields["每單最多席位"] || 1)),
+        minSeats: Math.max(1, Math.floor(Number(record.fields["每單最少席位"] || 1))),
+        maxSeats: Math.max(1, Math.floor(Number(record.fields["每單最多席位"] || 1))),
       }))
-      .filter((plan) => plan.workshopId && Number.isFinite(plan.unitPrice));
+      .map((plan) => ({ ...plan, maxSeats: Math.max(plan.minSeats, plan.maxSeats) }))
+      .filter((plan) => plan.workshopId && plan.ticketType && Number.isFinite(plan.unitPrice));
+  }
+
+  function isSeatCountAllowed(plan, seatCount) {
+    return Number.isInteger(seatCount)
+      && seatCount >= plan.minSeats
+      && seatCount <= plan.maxSeats;
   }
 
   function workshopDisplay(workshop) {
-    const date = workshop.date ? new Date(workshop.date).toISOString().slice(0, 10).replaceAll("-", "/") : "";
+    const date = londonDate(workshop.date).replaceAll("-", "/");
     return [workshop.name, date, workshop.startTime, workshop.location].filter(Boolean).join(" · ");
   }
 
-  root.WorkshopCatalog = {
+  const api = {
     publicWorkshops,
     publicTicketPlans,
+    isSeatCountAllowed,
     workshopDisplay,
   };
-})(window);
+  if (typeof module !== "undefined") module.exports = api;
+  root.WorkshopCatalog = api;
+})(typeof window === "undefined" ? globalThis : window);

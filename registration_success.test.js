@@ -37,7 +37,7 @@ test("success state allowlists only concise summary fields", () => {
     "lang: LANG",
     "email: payload.email",
     "workshopName: payload.workshopName",
-    'ticketName: selectedTicket?.name || selectedTicket?.ticketType || ""',
+    'ticketName: selectedPlan?.ticketType || ""',
     "seatCount: payload.seatCount",
   ].forEach((field) => assert.ok(stateSource.includes(field), `missing ${field}`));
 
