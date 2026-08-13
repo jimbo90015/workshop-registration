@@ -77,6 +77,13 @@ test("success state allowlists only concise summary fields", () => {
 const successPagePath = path.join(__dirname, "success.html");
 const readSuccessPage = () => fs.readFileSync(successPagePath, "utf8");
 
+test("hidden success-page actions stay hidden despite link display styles", () => {
+  const successPage = readSuccessPage();
+
+  assert.match(successPage, /\[hidden\]\s*\{[^}]*display:\s*none\s*!important;/s);
+  assert.match(successPage, /id="manageLink"[^>]*hidden/);
+});
+
 class FakeElement {
   constructor(tagName = "div") {
     this.tagName = tagName;
