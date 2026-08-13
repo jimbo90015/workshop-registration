@@ -29,3 +29,8 @@ test("Discord claim page rejects malformed tokens before network access", () => 
   assert.match(page, /if \(!token\)/);
   assert.match(page, /邀請連結不完整/);
 });
+
+test("Discord claim page explains that interrupted onboarding can be resumed", () => {
+  assert.match(page, /加入完成前可重新開啟此連結/);
+  assert.doesNotMatch(page, /只能使用一次/);
+});
