@@ -487,7 +487,9 @@
     if(!show) $("testimonial").value="";
   });
 
-  // ===== 身分：完全由信件連結帶入（rid = Registration record_id、t = 一次性 token）=====
+  // ===== 身分：完全由信件連結帶入（rid = Participant record_id、t = 一次性 token）=====
+  // 用 Participant 而不是 Registration：一張訂單可能有好幾個席位，
+  // 回饋是一個人一份，token 與寄送狀態也都掛在 Participants 表上。
   const PRE = {
     rid: (QS.get("rid")||"").trim(),
     token: (QS.get("t")||"").trim(),
@@ -551,7 +553,7 @@
 
     const interest = collectChips("productInterest");
     const payload = {
-      registrationRecordId: PRE.rid,
+      participantRecordId: PRE.rid,
       feedbackToken: PRE.token,
       formLang: LANG,
       satisfactionScore: satisfaction,
@@ -579,7 +581,16 @@
       const res = await fetch(WEBHOOK_URL, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error("HTTP " + res.status);
+      if (!res.ok) {
+        // 後端會回中文說明（連結失效、已經填過…），有就直接顯示給學員看，
+        // 不要讓他們對著「HTTP 409」猜。
+        const detail = await res.json().catch(() => null);
+        if (detail && detail.message) {
+          btn.disabled = false; btn.textContent = I18N.btn_submit[k()];
+          return showStatus(false, detail.message);
+        }
+        throw new Error("HTTP " + res.status);
+      }
       $("fb").style.display = "none";
       $("done").classList.add("show");
       window.scrollTo({ top:0, behavior:"smooth" });
