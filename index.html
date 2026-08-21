@@ -576,7 +576,7 @@
     const previousValue = select.value;
     const show = registering && availablePlans.length > 0;
 
-    $("workshop").required = registering;
+    $("workshop").required = registering && !ATTENDEE_MODE;
     $("ticketFields").style.display = show ? "" : "none";
     select.required = show;
     select.innerHTML = "";
