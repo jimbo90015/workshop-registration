@@ -9,8 +9,12 @@
 <body>
 <p>正在開啟參加者資料表…</p>
 <script>
+  // Some mail apps drop the #fragment when opening a link, so accept ?t= as well.
   const fragment = window.location.hash;
-  window.location.replace(`./?mode=attendee${fragment}`);
+  const queryToken = new URLSearchParams(window.location.search).get("t") || "";
+  if (fragment) window.location.replace(`./?mode=attendee${fragment}`);
+  else if (queryToken) window.location.replace(`./?mode=attendee&t=${encodeURIComponent(queryToken)}`);
+  else window.location.replace("./?mode=attendee");
 </script>
 </body>
 </html>

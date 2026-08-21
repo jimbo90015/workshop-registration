@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <title>AI Workshop 報名表 · Registration</title>
 <style>
   :root{
@@ -340,7 +341,10 @@
   const ATTENDEE_URL = "https://darrenaitool.zeabur.app/webhook/workshop-attendee";
   const SUCCESS_STORAGE_KEY = "workshop_registration_success";
   const ATTENDEE_MODE = new URLSearchParams(window.location.search).get("mode") === "attendee";
-  const ATTENDEE_TOKEN = GroupRegistration.fragmentToken(window.location.hash, "attendee");
+  // Mail apps sometimes strip the #fragment, so fall back to the ?t= query token.
+  const ATTENDEE_TOKEN = GroupRegistration.fragmentToken(window.location.hash, "attendee")
+    || new URLSearchParams(window.location.search).get("t")
+    || "";
   let ATTENDEE_INVITE = null;
 
   function clearSuccessState() {
