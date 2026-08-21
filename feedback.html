@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Workshop 課後回饋 · Feedback</title>
+<style>
+  :root{
+    --bg:#ece6dc; --card:#faf7f1; --field:#f2ece2; --border:#ded5c6; --border-strong:#cabca8;
+    --fg:#33302b; --muted:#7d7567; --faint:#a69d8d;
+    --accent:#e07b39; --accent-weak:#fbe7d7; --accent-fg:#ffffff;
+    --ok:#1c9c8e; --ok-bg:#d8efeb; --err:#c0392b; --err-bg:#f7e5e1;
+    --ring:0 0 0 4px color-mix(in srgb, var(--accent) 24%, transparent);
+    --shadow:0 1px 2px rgba(70,55,35,.05), 0 10px 34px rgba(70,55,35,.08);
+    --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a69d8d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --check:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  }
+  *{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{ margin:0; background:var(--bg); color:var(--fg); padding:28px 20px 56px;
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang TC","PingFang SC","Noto Sans TC","Noto Sans SC",sans-serif; }
+  .wrap{ max-width:620px; margin:0 auto; }
+
+  /* language switcher */
+  .topbar{ display:flex; justify-content:flex-end; margin-bottom:16px; }
+  .langbar{ display:inline-flex; padding:4px; gap:2px; background:var(--field); border:1px solid var(--border); border-radius:999px; }
+  .langbar button{ appearance:none; border:0; background:transparent; color:var(--muted);
+    font:600 .84rem/1 inherit; padding:8px 15px; min-height:36px; border-radius:999px; cursor:pointer; transition:background .16s,color .16s; }
+  .langbar button:hover{ color:var(--fg); }
+  .langbar button.active{ background:var(--accent-weak); color:var(--accent); box-shadow:inset 0 0 0 1.6px var(--accent); }
+
+  /* header */
+  .hero{ display:flex; align-items:center; gap:14px; margin:2px 2px 22px; }
+  .logo{ width:46px; height:46px; flex:none; border-radius:13px; color:#fff; display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #f6c28a)); box-shadow:var(--shadow); }
+  .hero h1{ margin:0; font-size:1.4rem; font-weight:750; letter-spacing:-.01em; }
+  .hero p{ margin:3px 0 0; color:var(--muted); font-size:.9rem; }
+
+  /* card + sections */
+  form{ background:var(--card); border:1px solid var(--border); border-radius:20px; padding:8px 26px 26px; box-shadow:var(--shadow); }
+  .section{ padding:22px 0; border-top:1px solid var(--border); }
+  .section:first-child{ border-top:0; }
+  .sec-title{ margin:0 0 16px; font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--faint); }
+
+  .field{ margin-bottom:16px; }
+  .field:last-child{ margin-bottom:0; }
+  label.q{ display:block; font-weight:600; font-size:.92rem; margin-bottom:7px; color:var(--fg); }
+  label.q .req{ color:var(--accent); margin-left:3px; font-weight:700; }
+  .hint{ color:var(--muted); font-size:.8rem; margin-top:5px; }
+
+  /* inputs & selects */
+  input[type=text],input[type=email],select,textarea{
+    width:100%; min-height:47px; padding:11px 14px; border-radius:12px; border:1.5px solid var(--border);
+    background:var(--field); color:var(--fg); font-family:inherit; font-size:1rem; outline:none; appearance:none;
+    transition:border-color .16s, box-shadow .16s, background .16s; }
+  textarea{ min-height:96px; line-height:1.6; resize:vertical; }
+  input::placeholder,textarea::placeholder{ color:var(--faint); }
+  select{ background-image:var(--caret); background-repeat:no-repeat; background-position:right 14px center; padding-right:42px; cursor:pointer; }
+  input:focus,select:focus,textarea:focus{ border-color:var(--accent); box-shadow:var(--ring); background:var(--card); }
+  .other-input{ margin-top:10px; display:none; }
+  .other-input.show{ display:block; animation:reveal .18s ease; }
+
+  /* locked identity card */
+  .idcard{ display:flex; align-items:center; gap:13px; background:var(--accent-weak);
+    border:1px solid color-mix(in srgb, var(--accent) 22%, transparent); border-radius:14px; padding:15px 16px; }
+  .idcard .ic{ width:38px; height:38px; flex:none; border-radius:11px; display:grid; place-items:center;
+    background:var(--card); color:var(--accent); }
+  .idcard b{ display:block; font-size:.95rem; font-weight:650; line-height:1.35; overflow-wrap:anywhere; }
+  .idcard span{ display:block; color:var(--muted); font-size:.82rem; margin-top:2px; overflow-wrap:anywhere; }
+
+  /* conditional block */
+  .subblock{ background:var(--accent-weak); border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+    border-radius:14px; padding:16px; margin:2px 0 0; display:none; }
+  .subblock.show{ display:block; animation:reveal .18s ease; }
+  .subblock .field:last-child{ margin-bottom:0; }
+
+  /* chips (multi) + radios (single) */
+  .chips,.radios{ display:flex; flex-wrap:wrap; gap:9px; min-width:0; }
+  .chips label,.radios label{ position:relative; display:inline-flex; align-items:center; gap:9px; padding:11px 14px; min-height:44px; max-width:100%;
+    border:1.5px solid var(--border); border-radius:12px; background:var(--field); color:var(--fg);
+    font-size:.9rem; line-height:1.3; cursor:pointer; user-select:none; overflow-wrap:anywhere; transition:border-color .16s, background .16s; }
+  .chips label:hover,.radios label:hover{ border-color:var(--border-strong); }
+  .chips label::before,.radios label::before{ content:""; width:18px; height:18px; flex:none; border-radius:6px; border:1.5px solid var(--border-strong);
+    background:var(--card); transition:background .16s, border-color .16s, box-shadow .16s; }
+  .radios label::before{ border-radius:50%; }
+  .chips input,.radios input{ position:absolute; width:1px; height:1px; opacity:0; margin:0; }
+  .chips label:has(input:checked),.radios label:has(input:checked){ border-color:var(--accent); background:var(--accent-weak); }
+  .chips label:has(input:checked)::before{ background:var(--accent) var(--check) center/13px no-repeat; border-color:var(--accent); }
+  .radios label:has(input:checked)::before{ background:var(--accent); border-color:var(--accent); box-shadow:inset 0 0 0 3.5px var(--card); }
+  .chips label:focus-within,.radios label:focus-within{ border-color:var(--accent); box-shadow:var(--ring); }
+
+  /* sliders (滿意度 / 推薦分數) */
+  .slider{ --pct:0%; display:flex; align-items:flex-start; gap:14px; }
+  .slider .val{ flex:none; min-width:54px; height:46px; display:grid; place-items:center; border-radius:12px;
+    background:var(--accent); color:var(--accent-fg); font-size:1.12rem; font-weight:700;
+    font-variant-numeric:tabular-nums; transition:background .16s, color .16s, box-shadow .16s; }
+  .slider.untouched .val{ background:var(--field); color:var(--faint); box-shadow:inset 0 0 0 1.5px var(--border); }
+  .slider .track{ flex:1; min-width:0; }
+  .slider input[type=range]{ -webkit-appearance:none; appearance:none; display:block; width:100%;
+    height:46px; padding:0; margin:0; background:transparent; border:0; cursor:pointer; }
+  /* 蓋掉全域 input:focus 的方框 ring，滑桿的 focus 只畫在拉柄上 */
+  .slider input[type=range]:focus{ outline:none; box-shadow:none; border:0; background:transparent; }
+  /* WebKit / Blink */
+  .slider input[type=range]::-webkit-slider-runnable-track{ height:10px; border-radius:999px;
+    background:linear-gradient(to right, var(--accent) 0 var(--pct), var(--border) var(--pct) 100%); }
+  .slider input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:28px; height:28px; margin-top:-9px;
+    border-radius:50%; background:var(--card); border:3.5px solid var(--accent);
+    box-shadow:0 2px 7px rgba(70,55,35,.22); transition:border-color .16s, box-shadow .16s; }
+  .slider.untouched input[type=range]::-webkit-slider-runnable-track{ background:var(--border); }
+  .slider.untouched input[type=range]::-webkit-slider-thumb{ border-color:var(--border-strong); }
+  .slider input[type=range]:focus-visible::-webkit-slider-thumb{ box-shadow:var(--ring); }
+  /* Firefox */
+  .slider input[type=range]::-moz-range-track{ height:10px; border-radius:999px; background:var(--border); }
+  .slider input[type=range]::-moz-range-progress{ height:10px; border-radius:999px; background:var(--accent); }
+  .slider input[type=range]::-moz-range-thumb{ width:22px; height:22px; border-radius:50%; background:var(--card);
+    border:3.5px solid var(--accent); box-shadow:0 2px 7px rgba(70,55,35,.22); }
+  .slider.untouched input[type=range]::-moz-range-progress{ background:var(--border); }
+  .slider.untouched input[type=range]::-moz-range-thumb{ border-color:var(--border-strong); }
+  .ends{ display:flex; justify-content:space-between; gap:10px; margin-top:-4px; color:var(--faint); font-size:.76rem; }
+
+  /* consent */
+  .consent{ display:flex; align-items:flex-start; gap:12px; font-size:.9rem; color:var(--fg); line-height:1.55; cursor:pointer; }
+  .consent input{ appearance:none; -webkit-appearance:none; flex:none; width:20px; height:20px; margin:2px 0 0;
+    border:1.5px solid var(--border-strong); border-radius:6px; background:var(--field); cursor:pointer; transition:.16s; }
+  .consent input:checked{ background:var(--accent) var(--check) center/13px no-repeat; border-color:var(--accent); }
+  .consent input:focus-visible{ box-shadow:var(--ring); }
+
+  /* submit + status */
+  button[type=submit]{ width:100%; margin-top:22px; min-height:52px; border:0; border-radius:13px; cursor:pointer;
+    font-size:1rem; font-weight:700; color:var(--accent-fg); background:var(--accent);
+    box-shadow:0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent); transition:background .16s, transform .05s; }
+  button[type=submit]:hover{ background:color-mix(in srgb, var(--accent) 88%, #000); }
+  button[type=submit]:active{ transform:translateY(1px); }
+  button[type=submit]:disabled{ opacity:.6; cursor:progress; box-shadow:none; }
+  .status{ margin-top:16px; padding:13px 15px; border-radius:12px; display:none; font-size:.9rem; line-height:1.55; }
+  .status.show{ display:block; animation:reveal .18s ease; }
+  .status.ok{ background:var(--ok-bg); color:var(--ok); border:1px solid color-mix(in srgb, var(--ok) 38%, transparent); }
+  .status.err{ background:var(--err-bg); color:var(--err); border:1px solid color-mix(in srgb, var(--err) 38%, transparent); }
+
+  /* thank-you panel */
+  .done{ display:none; background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:38px 26px; text-align:center; box-shadow:var(--shadow); }
+  .done.show{ display:block; animation:reveal .2s ease; }
+  .done .tick{ width:58px; height:58px; margin:0 auto 16px; border-radius:50%; display:grid; place-items:center;
+    background:var(--ok-bg); color:var(--ok); }
+  .done.warn .tick{ background:var(--err-bg); color:var(--err); }
+  .done h2{ margin:0 0 6px; font-size:1.18rem; font-weight:700; }
+  .done p{ margin:0; color:var(--muted); font-size:.92rem; }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:520px){
+    body{ padding:18px 14px 44px; }
+    form{ padding:6px 18px 20px; border-radius:16px; }
+    .done{ padding:32px 18px; border-radius:16px; }
+    .row2{ grid-template-columns:1fr; gap:0; }
+    .row2 > .field{ margin-bottom:16px; }
+    .slider{ gap:11px; }
+    .slider .val{ min-width:48px; }
+  }
+  @keyframes reveal{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="langbar">
+      <button type="button" data-lang="zh-Hant">繁體</button>
+      <button type="button" data-lang="zh-Hans">简体</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="logo" aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.7L18.6 9.5l-4.7 1.8L12 16l-1.9-4.7L5.4 9.5l4.7-1.8z"/><path d="M19 15l.7 1.8L21.5 17.5l-1.8.7L19 20l-.7-1.8L16.5 17.5l1.8-.7z"/></svg>
+    </div>
+    <div>
+      <h1 data-i18n="hero_h1">課後回饋</h1>
+      <p data-i18n="hero_p">大約 2 分鐘。你的回答會直接影響下一場課的內容。</p>
+    </div>
+  </div>
+
+  <form id="fb">
+    <!-- ===== 身分：完全由信件連結帶入，學員不用填 ===== -->
+    <div class="section">
+      <p class="sec-title" data-i18n="sec_who">你參加的場次</p>
+      <div class="idcard">
+        <div class="ic" aria-hidden="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <div>
+          <b id="idWorkshop"></b>
+          <span id="idPerson"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 整體評價 ===== -->
+    <div class="section">
+      <p class="sec-title" data-i18n="sec_rating">整體評價</p>
+
+      <div class="field">
+        <label class="q" for="satisfaction"><span data-i18n="q_satisfaction">這場 Workshop 整體滿意度</span><span class="req">*</span></label>
+        <div class="slider untouched" id="satWrap">
+          <div class="val" id="satVal">—</div>
+          <div class="track">
+            <input id="satisfaction" type="range" min="1" max="5" step="1" value="3">
+            <div class="ends"><span data-i18n="end_sat_low">1 · 很不滿意</span><span data-i18n="end_sat_high">5 · 非常滿意</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="q" for="nps"><span data-i18n="q_nps">你有多願意把這場課推薦給朋友或同事？</span><span class="req">*</span></label>
+        <div class="slider untouched" id="npsWrap">
+          <div class="val" id="npsVal">—</div>
+          <div class="track">
+            <input id="nps" type="range" min="0" max="10" step="1" value="5">
+            <div class="ends"><span data-i18n="end_nps_low">0 · 完全不會</span><span data-i18n="end_nps_high">10 · 非常願意</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="q" data-i18n="q_difficulty">內容難度對你來說？</label>
+        <div class="radios" data-group="contentDifficulty"></div>
+      </div>
+
+      <div class="field">
+        <label class="q" data-i18n="q_pace">課程節奏？</label>
+        <div class="radios" data-group="pace"></div>
+      </div>
+    </div>
+
+    <!-- ===== 內容細節 ===== -->
+    <div class="section">
+      <p class="sec-title" data-i18n="sec_content">課程內容</p>
+
+      <div class="field">
+        <label class="q"><span data-i18n="q_valuable">對你最有價值的部分？（可複選）</span><span class="req">*</span></label>
+        <div class="chips" data-group="mostValuablePart"></div>
+        <input class="other-input" id="mostValuablePart_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
+      </div>
+
+      <div class="field">
+        <label class="q" for="improvement" data-i18n="q_improvement">哪裡可以做得更好？（選填）</label>
+        <textarea id="improvement" data-i18n-ph="ph_improvement" placeholder="任何具體的建議都很有幫助，例如某段太趕、某個工具沒講清楚…"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="q" data-i18n="q_next">課後你最想繼續學什麼？（選填，可複選）</label>
+        <div class="chips" data-group="nextTopics"></div>
+        <input class="other-input" id="nextTopics_other" type="text" data-i18n-ph="other_ph" placeholder="請填寫">
+      </div>
+    </div>
+
+    <!-- ===== 見證 ===== -->
+    <div class="section">
+      <p class="sec-title" data-i18n="sec_testimonial">課程見證</p>
+      <div class="field">
+        <label class="q"><span data-i18n="q_permission">我們可以引用你的回饋嗎？</span><span class="req">*</span></label>
+        <div class="radios" data-group="testimonialPermission"></div>
+      </div>
+      <div class="subblock" id="testimonialBlock">
+        <div class="field">
+          <label class="q" for="testimonial" data-i18n="q_testimonial">想寫給還在猶豫的人一句話？（選填）</label>
+          <textarea id="testimonial" data-i18n-ph="ph_testimonial" placeholder="一兩句就夠，例如你原本卡在哪、上完課有什麼改變。"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 後續 ===== -->
+    <div class="section">
+      <p class="sec-title" data-i18n="sec_next">接下來</p>
+
+      <div class="field">
+        <label class="q" data-i18n="q_interest">你對哪些後續服務有興趣？（選填，可複選）</label>
+        <div class="chips" data-group="productInterest"></div>
+      </div>
+
+      <div class="field">
+        <label class="q" data-i18n="q_referral">你會想帶朋友或同事來上下一場嗎？（選填）</label>
+        <div class="radios" data-group="referralPotential"></div>
+      </div>
+
+      <div class="field">
+        <label class="q" for="notes" data-i18n="q_notes">還有什麼想跟我們說的？（選填）</label>
+        <textarea id="notes" data-i18n-ph="ph_notes" placeholder="想問的問題、想合作的方向、任何話都可以。"></textarea>
+      </div>
+
+      <div class="field">
+        <label class="consent"><input id="followUpRequired" type="checkbox">
+          <span data-i18n="q_followup">希望有人主動聯絡我，聊聊我的狀況。</span></label>
+      </div>
+    </div>
+
+    <button type="submit" id="submitBtn" data-i18n="btn_submit">送出回饋</button>
+    <div class="status" id="status"></div>
+  </form>
+
+  <div class="done" id="done">
+    <div class="tick" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+    </div>
+    <h2 data-i18n="done_h">收到了，謝謝你</h2>
+    <p data-i18n="done_p">你的回饋會直接影響下一場課的安排。</p>
+  </div>
+
+  <div class="done warn" id="invalid">
+    <div class="tick" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg>
+    </div>
+    <h2 data-i18n="bad_h">這個連結不完整</h2>
+    <p data-i18n="bad_p">請從我們寄給你的課後回饋信裡的按鈕進入。信找不到了就直接回覆我們，我們幫你補寄一封。</p>
+  </div>
+</div>
+
+<script>
+  const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-feedback";
+
+  // ===== i18n 字典（t=繁體 s=簡體 e=English）=====
+  const I18N = {
+    title:        { t:"AI Workshop 課後回饋 · Feedback", s:"AI Workshop 课后回馈 · Feedback", e:"AI Workshop Feedback" },
+    hero_h1:      { t:"課後回饋", s:"课后回馈", e:"Workshop Feedback" },
+    hero_p:       { t:"大約 2 分鐘。你的回答會直接影響下一場課的內容。", s:"大约 2 分钟。你的回答会直接影响下一场课的内容。", e:"About 2 minutes. Your answers shape the next workshop." },
+    sec_who:      { t:"你參加的場次", s:"你参加的场次", e:"Your session" },
+    sec_rating:   { t:"整體評價", s:"整体评价", e:"Overall rating" },
+    sec_content:  { t:"課程內容", s:"课程内容", e:"The content" },
+    sec_testimonial:{ t:"課程見證", s:"课程见证", e:"Testimonial" },
+    sec_next:     { t:"接下來", s:"接下来", e:"What's next" },
+    q_satisfaction:{ t:"這場 Workshop 整體滿意度", s:"这场 Workshop 整体满意度", e:"Overall, how satisfied were you?" },
+    end_sat_low:  { t:"1 · 很不滿意", s:"1 · 很不满意", e:"1 · Very dissatisfied" },
+    end_sat_high: { t:"5 · 非常滿意", s:"5 · 非常满意", e:"5 · Very satisfied" },
+    q_nps:        { t:"你有多願意把這場課推薦給朋友或同事？", s:"你有多愿意把这场课推荐给朋友或同事？", e:"How likely are you to recommend this workshop?" },
+    end_nps_low:  { t:"0 · 完全不會", s:"0 · 完全不会", e:"0 · Not at all" },
+    end_nps_high: { t:"10 · 非常願意", s:"10 · 非常愿意", e:"10 · Extremely likely" },
+    q_difficulty: { t:"內容難度對你來說？", s:"内容难度对你来说？", e:"How was the difficulty level for you?" },
+    q_pace:       { t:"課程節奏？", s:"课程节奏？", e:"How was the pace?" },
+    q_valuable:   { t:"對你最有價值的部分？（可複選）", s:"对你最有价值的部分？（可复选）", e:"What was most valuable to you? (select all)" },
+    q_improvement:{ t:"哪裡可以做得更好？（選填）", s:"哪里可以做得更好？（选填）", e:"What could we do better? (optional)" },
+    ph_improvement:{ t:"任何具體的建議都很有幫助，例如某段太趕、某個工具沒講清楚…", s:"任何具体的建议都很有帮助，例如某段太赶、某个工具没讲清楚…", e:"Anything specific helps — a section that felt rushed, a tool that wasn't clear…" },
+    q_next:       { t:"課後你最想繼續學什麼？（選填，可複選）", s:"课后你最想继续学什么？（选填，可复选）", e:"What would you like to learn next? (optional)" },
+    q_permission: { t:"我們可以引用你的回饋嗎？", s:"我们可以引用你的回馈吗？", e:"May we quote your feedback?" },
+    q_testimonial:{ t:"想寫給還在猶豫的人一句話？（選填）", s:"想写给还在犹豫的人一句话？（选填）", e:"A line for someone still on the fence? (optional)" },
+    ph_testimonial:{ t:"一兩句就夠，例如你原本卡在哪、上完課有什麼改變。", s:"一两句就够，例如你原本卡在哪、上完课有什么改变。", e:"A sentence or two — what you were stuck on, what changed after." },
+    q_interest:   { t:"你對哪些後續服務有興趣？（選填，可複選）", s:"你对哪些后续服务有兴趣？（选填，可复选）", e:"Interested in any follow-up services? (optional)" },
+    q_referral:   { t:"你會想帶朋友或同事來上下一場嗎？（選填）", s:"你会想带朋友或同事来上下一场吗？（选填）", e:"Would you bring a friend or colleague next time? (optional)" },
+    q_notes:      { t:"還有什麼想跟我們說的？（選填）", s:"还有什么想跟我们说的？（选填）", e:"Anything else you'd like to tell us? (optional)" },
+    ph_notes:     { t:"想問的問題、想合作的方向、任何話都可以。", s:"想问的问题、想合作的方向、任何话都可以。", e:"Questions, collaboration ideas, anything at all." },
+    q_followup:   { t:"希望有人主動聯絡我，聊聊我的狀況。", s:"希望有人主动联络我，聊聊我的状况。", e:"I'd like someone to reach out and talk about my situation." },
+    other_ph:     { t:"請填寫", s:"请填写", e:"Please specify" },
+    btn_submit:   { t:"送出回饋", s:"送出回馈", e:"Submit feedback" },
+    btn_submitting:{ t:"送出中…", s:"送出中…", e:"Submitting…" },
+    err_required: { t:"請拖動滿意度與推薦分數的滑桿，並完成「最有價值的部分」和「見證授權」。", s:"请拖动满意度与推荐分数的滑杆，并完成「最有价值的部分」和「见证授权」。", e:"Please move both sliders and answer the most-valuable-part and quote-permission questions." },
+    err_msg:      { t:"送出失敗：", s:"送出失败：", e:"Submission failed: " },
+    err_tail:     { t:"。請稍後再試或直接聯絡我們。", s:"。请稍后再试或直接联络我们。", e:". Please try again later or contact us." },
+    done_h:       { t:"收到了，謝謝你", s:"收到了，谢谢你", e:"Got it — thank you" },
+    done_p:       { t:"你的回饋會直接影響下一場課的安排。", s:"你的回馈会直接影响下一场课的安排。", e:"Your feedback goes straight into planning the next one." },
+    bad_h:        { t:"這個連結不完整", s:"这个链接不完整", e:"This link is incomplete" },
+    bad_p:        { t:"請從我們寄給你的課後回饋信裡的按鈕進入。信找不到了就直接回覆我們，我們幫你補寄一封。", s:"请从我们寄给你的课后回馈信里的按钮进入。信找不到了就直接回复我们，我们帮你补寄一封。", e:"Please open the form from the button in our feedback email. If you can't find it, just reply to us and we'll resend it." }
+  };
+
+  // ===== 選項字典：value 一律英文（對齊 Lark），label 三語 =====
+  const OPT = {
+    contentDifficulty: { items:[
+      ["Too easy",{t:"太簡單",s:"太简单",e:"Too easy"}],
+      ["Just right",{t:"剛剛好",s:"刚刚好",e:"Just right"}],
+      ["Too hard",{t:"太難",s:"太难",e:"Too hard"}] ]},
+    pace: { items:[
+      ["Too slow",{t:"太慢",s:"太慢",e:"Too slow"}],
+      ["Just right",{t:"剛剛好",s:"刚刚好",e:"Just right"}],
+      ["Too fast",{t:"太趕",s:"太赶",e:"Too fast"}] ]},
+    mostValuablePart: { other:true, items:[
+      ["Live demo",{t:"實際操作示範",s:"实际操作示范",e:"Live demos"}],
+      ["Hands-on practice",{t:"自己動手實作",s:"自己动手实作",e:"Hands-on practice"}],
+      ["Concepts & frameworks",{t:"觀念與思考框架",s:"观念与思考框架",e:"Concepts & frameworks"}],
+      ["Tool recommendations",{t:"工具推薦與比較",s:"工具推荐与比较",e:"Tool recommendations"}],
+      ["Real case studies",{t:"真實案例拆解",s:"真实案例拆解",e:"Real case studies"}],
+      ["Q&A",{t:"問答討論",s:"问答讨论",e:"Q&A"}],
+      ["Networking",{t:"認識其他學員",s:"认识其他学员",e:"Meeting other participants"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    nextTopics: { other:true, items:[
+      ["Prompting",{t:"提示詞技巧",s:"提示词技巧",e:"Prompting techniques"}],
+      ["AI Agents & automation",{t:"AI Agent 與流程自動化",s:"AI Agent 与流程自动化",e:"AI Agents & automation"}],
+      ["AI coding",{t:"用 AI 寫程式",s:"用 AI 写程序",e:"Coding with AI"}],
+      ["Content creation",{t:"內容創作（文案、影音、圖）",s:"内容创作（文案、影音、图）",e:"Content creation"}],
+      ["Data analysis",{t:"資料分析與報表",s:"资料分析与报表",e:"Data analysis"}],
+      ["Build my own AI product",{t:"打造自己的 AI 產品",s:"打造自己的 AI 产品",e:"Building my own AI product"}],
+      ["Team adoption",{t:"帶團隊 / 公司導入 AI",s:"带团队 / 公司导入 AI",e:"Rolling AI out to a team"}],
+      ["Other",{t:"其他",s:"其他",e:"Other"}] ]},
+    testimonialPermission: { items:[
+      ["Yes, name and content can be used",{t:"可以，署名引用沒問題",s:"可以，署名引用没问题",e:"Yes — you may use my name"}],
+      ["Yes, anonymous only",{t:"可以，但請匿名",s:"可以，但请匿名",e:"Yes — anonymously only"}],
+      ["No",{t:"請不要引用",s:"请不要引用",e:"No, please don't"}] ]},
+    productInterest: { items:[
+      ["Advanced Course",{t:"進階課程",s:"进阶课程",e:"Advanced course"}],
+      ["1-on-1 Consulting",{t:"一對一顧問",s:"一对一顾问",e:"1-on-1 consulting"}],
+      ["Corporate Training",{t:"企業內訓",s:"企业内训",e:"Corporate training"}],
+      ["AI Agent Build",{t:"AI Agent 建置 / 自動化專案",s:"AI Agent 搭建 / 自动化项目",e:"AI Agent build / automation"}],
+      ["None Right Now",{t:"目前都不需要",s:"目前都不需要",e:"None right now"}] ]},
+    referralPotential: { items:[
+      ["High",{t:"會，我已經想到人選了",s:"会，我已经想到人选了",e:"Yes — I have someone in mind"}],
+      ["Medium",{t:"有機會，看場次時間",s:"有机会，看场次时间",e:"Maybe — depends on the date"}],
+      ["Low",{t:"目前沒有",s:"目前没有",e:"Not right now"}] ]}
+  };
+
+  // productInterest 勾選 → Lark 的四個 Interested 單選欄位
+  const INTEREST_FIELD = {
+    "Advanced Course":    "interestedAdvancedCourse",
+    "1-on-1 Consulting":  "interestedConsulting",
+    "Corporate Training": "interestedCorporateTraining",
+    "AI Agent Build":     "interestedAiAgent"
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const LK = { "zh-Hant":"t", "zh-Hans":"s", "en":"e" };
+  const QS = new URLSearchParams(location.search);
+  let LANG = detectLang();
+
+  function detectLang(){
+    const q = QS.get("lang");
+    if (q && LK[q]) return q;
+    const saved = localStorage.getItem("reg_lang");
+    if (saved && LK[saved]) return saved;
+    const n = (navigator.language || "").toLowerCase();
+    if (n.startsWith("zh")) return (n.includes("cn")||n.includes("hans")||n.includes("sg")) ? "zh-Hans" : "zh-Hant";
+    if (n.startsWith("en")) return "en";
+    return "zh-Hant";
+  }
+
+  // ===== 建立元件（只建一次；label 記住三語，切語言時只改字）=====
+  const translatable = []; // {el, map, attr}
+  function reg(el, map, attr){ translatable.push({el, map, attr}); }
+
+  function buildChoice(box, type){
+    const cfg = OPT[box.dataset.group];
+    const name = box.dataset.group;
+    box.innerHTML = "";
+    cfg.items.forEach(([val,map])=>{
+      const lab=document.createElement("label");
+      const inp=document.createElement("input"); inp.type=type; inp.value=val;
+      if(type==="radio") inp.name=name;
+      const span=document.createElement("span"); reg(span, map, "text");
+      lab.appendChild(inp); lab.appendChild(span); box.appendChild(lab);
+    });
+  }
+  document.querySelectorAll(".chips[data-group]").forEach(b=>buildChoice(b,"checkbox"));
+  document.querySelectorAll(".radios[data-group]").forEach(b=>buildChoice(b,"radio"));
+
+  // ===== 滑桿：預設停在中間但視為「還沒作答」，動過才算數 =====
+  function wireSlider(inputId, wrapId, valId){
+    const inp=$(inputId), wrap=$(wrapId), val=$(valId);
+    const paint = ()=>{
+      const min=Number(inp.min), max=Number(inp.max);
+      wrap.style.setProperty("--pct", ((Number(inp.value)-min)/(max-min)*100)+"%");
+      if(!wrap.classList.contains("untouched")) val.textContent = inp.value;
+    };
+    const touch = ()=>{ wrap.classList.remove("untouched"); paint(); };
+    inp.addEventListener("input", touch);
+    inp.addEventListener("pointerdown", touch);
+    inp.addEventListener("keydown", (e)=>{ if(e.key.indexOf("Arrow")===0 || e.key==="Home" || e.key==="End") touch(); });
+    paint();
+    return { el:inp, wrap };
+  }
+  const SLIDERS = {
+    satisfaction: wireSlider("satisfaction","satWrap","satVal"),
+    nps: wireSlider("nps","npsWrap","npsVal")
+  };
+
+  // Other 欄位顯示/隱藏
+  ["mostValuablePart","nextTopics"].forEach(g=>{
+    const box=document.querySelector('.chips[data-group="'+g+'"]'), other=$(g+"_other");
+    if(!box||!other) return;
+    box.addEventListener("change", ()=>{
+      const o=[...box.querySelectorAll("input")].find(i=>i.value==="Other");
+      const show = !!(o && o.checked);
+      other.classList.toggle("show", show);
+      if(!show) other.value="";
+    });
+  });
+
+  // 見證內容：選了「可以引用」才展開
+  document.querySelector('.radios[data-group="testimonialPermission"]').addEventListener("change", (e)=>{
+    const show = e.target.value.indexOf("Yes") === 0;
+    $("testimonialBlock").classList.toggle("show", show);
+    if(!show) $("testimonial").value="";
+  });
+
+  // ===== 身分：完全由信件連結帶入（rid = Registration record_id、t = 一次性 token）=====
+  const PRE = {
+    rid: (QS.get("rid")||"").trim(),
+    token: (QS.get("t")||"").trim(),
+    wsname: (QS.get("wsname")||"").trim(),
+    name: (QS.get("name")||"").trim()
+  };
+  const VALID_LINK = /^rec[A-Za-z0-9]+$/.test(PRE.rid);
+  if (VALID_LINK){
+    $("idWorkshop").textContent = PRE.wsname || "AI Workshop";
+    $("idPerson").textContent = PRE.name || "";
+  } else {
+    $("fb").style.display = "none";
+    $("invalid").classList.add("show");
+  }
+
+  // ===== 語言切換 =====
+  function setLang(lang){
+    LANG = lang; const k = LK[lang];
+    localStorage.setItem("reg_lang", lang);
+    document.documentElement.lang = lang;
+    document.title = I18N.title[k];
+    document.querySelectorAll("[data-i18n]").forEach(el=>{ const key=el.dataset.i18n; if(I18N[key]) el.textContent = I18N[key][k]; });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el=>{ const key=el.dataset.i18nPh; if(I18N[key]) el.placeholder = I18N[key][k]; });
+    translatable.forEach(({el,map,attr})=>{ if(attr==="text") el.textContent = map[k]; });
+    document.querySelectorAll(".langbar button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
+  }
+  document.querySelectorAll(".langbar button").forEach(b=> b.addEventListener("click", ()=> setLang(b.dataset.lang)));
+  setLang(LANG);
+
+  // ===== 收值 =====
+  function collectChips(name){
+    const box=document.querySelector('.chips[data-group="'+name+'"]');
+    let vals=[...box.querySelectorAll("input:checked")].map(i=>i.value);
+    const other=$(name+"_other");
+    if(other && vals.includes("Other")){
+      const txt=other.value.trim();
+      vals = vals.map(v=> v==="Other" ? (txt || "Other") : v);
+    }
+    return vals;
+  }
+  function radioVal(name){
+    const el=document.querySelector('.radios[data-group="'+name+'"] input:checked');
+    return el ? el.value : "";
+  }
+  function sliderVal(name){
+    const s=SLIDERS[name];
+    return s.wrap.classList.contains("untouched") ? null : Number(s.el.value);
+  }
+  const k = () => LK[LANG];
+
+  $("fb").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const satisfaction = sliderVal("satisfaction");
+    const nps = sliderVal("nps");
+    const valuable = collectChips("mostValuablePart");
+    const permission = radioVal("testimonialPermission");
+    if (satisfaction===null || nps===null || valuable.length===0 || !permission){
+      return showStatus(false, I18N.err_required[k()]);
+    }
+
+    const interest = collectChips("productInterest");
+    const payload = {
+      registrationRecordId: PRE.rid,
+      feedbackToken: PRE.token,
+      formLang: LANG,
+      satisfactionScore: satisfaction,
+      npsScore: nps,
+      contentDifficulty: radioVal("contentDifficulty"),
+      pace: radioVal("pace"),
+      mostValuablePart: valuable,
+      improvementSuggestion: $("improvement").value.trim(),
+      nextTopics: collectChips("nextTopics"),
+      testimonialPermission: permission,
+      testimonialContent: $("testimonial").value.trim(),
+      productInterest: interest,
+      referralPotential: radioVal("referralPotential") || "Unknown",
+      followUpRequired: $("followUpRequired").checked,
+      additionalNotes: $("notes").value.trim(),
+      submittedAt: new Date().toISOString()
+    };
+    // 展開成 Lark 的四個 Interested 單選欄位
+    Object.keys(INTEREST_FIELD).forEach((val)=>{
+      payload[INTEREST_FIELD[val]] = interest.includes(val) ? "Yes" : "No";
+    });
+
+    const btn = $("submitBtn"); btn.disabled = true; btn.textContent = I18N.btn_submitting[k()];
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      $("fb").style.display = "none";
+      $("done").classList.add("show");
+      window.scrollTo({ top:0, behavior:"smooth" });
+    } catch (err) {
+      showStatus(false, I18N.err_msg[k()] + err.message + I18N.err_tail[k()]);
+      btn.disabled = false; btn.textContent = I18N.btn_submit[k()];
+    }
+  });
+
+  function showStatus(ok, msg){
+    const s = $("status");
+    s.className = "status show " + (ok ? "ok" : "err");
+    s.textContent = msg;
+    s.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+</script>
+</body>
+</html>
