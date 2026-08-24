@@ -279,6 +279,17 @@
         <select id="aiExperience" required data-group="aiExperience"></select>
       </div>
 
+      <div class="row2">
+        <div class="field">
+          <label class="q" for="computerOS"><span data-i18n="q_computerOS">你上課會帶哪種電腦？</span><span class="req">*</span></label>
+          <select id="computerOS" required data-group="computerOS"></select>
+        </div>
+        <div class="field">
+          <label class="q" for="aiSubscription"><span data-i18n="q_aiSubscription">你目前有哪些 AI 付費訂閱？</span><span class="req">*</span></label>
+          <select id="aiSubscription" required data-group="aiSubscription"></select>
+        </div>
+      </div>
+
       <div class="field">
         <label class="q" data-i18n="q_tools">你用過哪些 AI 工具？（選填）</label>
         <div class="chips" data-group="toolsUsed"></div>
@@ -398,6 +409,8 @@
     q_yearsToGrad:{ t:"大約幾年後畢業？", s:"大约几年后毕业？", e:"About how many years until you graduate?" },
     q_targetRoles:{ t:"未來想衝刺的職能？（選填，可複選）", s:"未来想冲刺的职能？（选填，可复选）", e:"Roles you're aiming for? (optional)" },
     q_aiExp:      { t:"你目前的 AI 使用程度", s:"你目前的 AI 使用程度", e:"Your current AI experience level" },
+    q_computerOS: { t:"你上課會帶哪種電腦？", s:"你上课会带哪种电脑？", e:"Which computer will you bring to the workshop?" },
+    q_aiSubscription:{ t:"你目前有哪些 AI 付費訂閱？", s:"你目前有哪些 AI 付费订阅？", e:"Which paid AI subscriptions do you have?" },
     q_tools:      { t:"你用過哪些 AI 工具？（選填）", s:"你用过哪些 AI 工具？（选填）", e:"Which AI tools have you used? (optional)" },
     q_pain:       { t:"你使用 AI 時最大的痛點是什麼？", s:"你使用 AI 时最大的痛点是什么？", e:"What's your biggest pain point using AI?" },
     q_goal:       { t:"你參加這場 Workshop 的主要目的？", s:"你参加这场 Workshop 的主要目的？", e:"Your main goal for joining this workshop?" },
@@ -449,6 +462,11 @@
       ["Complete Beginner",{t:"完全新手",s:"完全新手",e:"Complete beginner"}],["Basic User",{t:"基礎使用者",s:"基础用户",e:"Basic user"}],
       ["Regular User",{t:"一般使用者",s:"常规用户",e:"Regular user"}],["Advanced User",{t:"進階使用者",s:"进阶用户",e:"Advanced user"}],
       ["Professional / Developer",{t:"專業 / 開發者",s:"专业 / 开发者",e:"Professional / Developer"}],["Unknown",{t:"不確定",s:"不确定",e:"Not sure"}] ]},
+    computerOS: { ph:true, other:false, items:[
+      ["Windows",{t:"Windows",s:"Windows",e:"Windows"}],["Mac",{t:"Mac",s:"Mac",e:"Mac"}] ]},
+    aiSubscription: { ph:true, other:false, items:[
+      ["Claude",{t:"Claude",s:"Claude",e:"Claude"}],["ChatGPT",{t:"ChatGPT",s:"ChatGPT",e:"ChatGPT"}],
+      ["Both",{t:"兩個都有",s:"两个都有",e:"Both"}],["No subscription",{t:"都沒有",s:"都没有",e:"Neither"}] ]},
     toolsUsed: { other:true, items:[
       ["ChatBot",{t:"ChatBot（ChatGPT、Gemini、Claude…）",s:"ChatBot（ChatGPT、Gemini、Claude…）",e:"ChatBot (ChatGPT, Gemini, Claude…)"}],
       ["GUI Agent",{t:"GUI Agent（Claude.ai、Codex Projects…）",s:"GUI Agent（Claude.ai、Codex Projects…）",e:"GUI-based AI Agent (Claude.ai, Codex Projects…)"}],
@@ -873,6 +891,8 @@
       yearsToGraduation: $("yearsToGraduation").value,
       targetRoles: collectGroup("targetRoles"),
       aiExperience: $("aiExperience").value,
+      computerOS: $("computerOS").value,
+      aiSubscription: $("aiSubscription").value,
       toolsUsed: collectGroup("toolsUsed"),
       painPoints: collectGroup("painPoints"),
       learningGoals: collectGroup("learningGoals"),
@@ -904,6 +924,8 @@
         yearsToGraduation:payload.yearsToGraduation,
         targetRoles:payload.targetRoles,
         aiExperience:payload.aiExperience,
+        computerOS:payload.computerOS,
+        aiSubscription:payload.aiSubscription,
         toolsUsed:payload.toolsUsed,
         painPoints:payload.painPoints,
         learningGoals:payload.learningGoals,
