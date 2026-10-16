@@ -12,8 +12,8 @@
 - test：`node --test`　e2e：無（合併後在正式網址用瀏覽器實走）　build：無
 
 ## 本專案鐵律
-- **後端網址只寫在 `endpoints.js`**，頁面一律用 `ENDPOINTS.<名稱>`；`endpoints.test.js` 會擋頁面寫死網址。某個端點搬到 Worker 時只改 `endpoints.js` 那一行，並在 Worker 那邊確認 CORS 與回應格式一致。
-- 邀請、報名管理、Discord 領取的 token 一律放在網址 `#` 片段，不放 query（避免進伺服器 log）。
+- **後端網址只寫在 `endpoints.js`**，頁面一律用 `ENDPOINTS.<名稱>`；`endpoints.test.js` 會掃所有 `*.html`，擋寫死的後端主機（`zeabur.app`、`breakshell.com`、`workers.dev`、`/webhook/`）。某個端點搬到 Worker 時改 `endpoints.js` 那一行，**同時改 `endpoints.test.js` 對該端點的期望網址**（測試刻意寫完整網址，當獨立的對照），並在 Worker 那邊確認 CORS 與回應格式一致。
+- 邀請、報名管理、Discord 領取的 token 放在網址 `#` 片段，不放 query（避免進伺服器 log）。既有例外：`index.html` 讀出席者邀請時也接受 `?t=`（舊連結相容，commit `7c77a0b`），新功能不要再加 query token。
 
 ## 下結論前的查證規則（必填）
 回答資料／狀態／bug 問題前，**先跑完下列查證，只讀 code 不准下結論**：

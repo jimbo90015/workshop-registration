@@ -20,13 +20,24 @@ test("endpoints not yet migrated still point at their n8n webhooks", () => {
   );
 });
 
-// 每個頁面都從 endpoints.js 拿網址：先載入它，頁面裡不得再寫死後端網址
-for (const page of ["index.html", "manage.html", "feedback.html", "discord.html"]) {
+// 每個頁面都從 endpoints.js 拿網址：用到 ENDPOINTS 的頁面要先載入它，任何頁面都不得寫死後端網址
+const pages = fs.readdirSync(__dirname).filter((name) => name.endsWith(".html"));
+
+test("every page that calls a backend is checked", () => {
+  for (const page of ["index.html", "manage.html", "feedback.html", "discord.html"]) {
+    assert.ok(pages.includes(page), `${page} 不見了`);
+    assert.match(fs.readFileSync(path.join(__dirname, page), "utf8"), /ENDPOINTS\./, `${page} 沒用 ENDPOINTS`);
+  }
+});
+
+for (const page of pages) {
   test(`${page} takes its backend URLs from endpoints.js`, () => {
     const html = fs.readFileSync(path.join(__dirname, page), "utf8");
+    assert.doesNotMatch(html, /zeabur\.app|breakshell\.com|workers\.dev|\/webhook\//);
+    const firstUse = html.indexOf("ENDPOINTS.");
+    if (firstUse < 0) return;
     const loadsConfig = html.indexOf('<script src="./endpoints.js"></script>');
     assert.ok(loadsConfig >= 0, `${page} 沒有載入 endpoints.js`);
-    assert.ok(loadsConfig < html.indexOf("ENDPOINTS."), `${page} 在載入 endpoints.js 之前就用了 ENDPOINTS`);
-    assert.doesNotMatch(html, /zeabur\.app|hooks\.breakshell\.com/);
+    assert.ok(loadsConfig < firstUse, `${page} 在載入 endpoints.js 之前就用了 ENDPOINTS`);
   });
 }
