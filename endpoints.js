@@ -9,7 +9,7 @@
     registration: `${N8N}/workshop-registration`,
     attendee: `${N8N}/workshop-attendee`,
     bookingManage: `${N8N}/workshop-booking-manage`,
-    feedback: `${N8N}/workshop-feedback`,
+    feedback: `${WORKER}/workshop-feedback`,
     discordClaimStart: `${N8N}/discord-claim-start-2a916bf2c3df4e04a54a0ac625662692`,
   };
   if (typeof module !== "undefined") module.exports = ENDPOINTS;
