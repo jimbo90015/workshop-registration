@@ -8,7 +8,7 @@
     catalog: `${WORKER}/workshop-catalog`,
     registration: `${N8N}/workshop-registration`,
     attendee: `${N8N}/workshop-attendee`,
-    bookingManage: `${N8N}/workshop-booking-manage`,
+    bookingManage: `${WORKER}/workshop-booking-manage`,
     feedback: `${WORKER}/workshop-feedback`,
     discordClaimStart: `${WORKER}/discord-claim-start`,
   };
