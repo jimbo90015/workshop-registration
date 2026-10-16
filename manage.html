@@ -23,8 +23,9 @@
   <section class="panel" aria-live="polite"><div id="content" class="status">載入中…</div></section>
 </main>
 <script src="./group_registration.js"></script>
+<script src="./endpoints.js"></script>
 <script>
-  const ENDPOINT = "https://darrenaitool.zeabur.app/webhook/workshop-booking-manage";
+  const ENDPOINT = ENDPOINTS.bookingManage;
   const token = GroupRegistration.fragmentToken(window.location.hash, "manage");
   const copy = {
     "zh-Hant":{title:"同行者管理",loading:"載入中…",invalid:"這個管理連結無效或已過期。",pending:"待補資料",done:"已完成",name:"姓名",email:"Email",save:"儲存並寄出新邀請",resend:"重寄邀請",saved:"已更新並寄出邀請。",sent:"邀請已重寄。",error:"操作失敗，請稍後再試。",seats:"席"},

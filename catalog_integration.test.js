@@ -7,7 +7,7 @@ test("registration page loads its workshop options from the public catalog", () 
   const page = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
 
   assert.match(page, /workshop_catalog\.js/);
-  assert.match(page, /workshop-catalog/);
+  assert.match(page, /ENDPOINTS\.catalog/); // 網址本身見 endpoints.test.js
   assert.match(page, /async function loadWorkshops/);
   assert.doesNotMatch(page, /recvp14KDuYGjm/);
 });

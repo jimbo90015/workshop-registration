@@ -49,8 +49,9 @@
   <p class="privacy">加入完成前可重新開啟此連結；連結僅供本人使用，請勿轉寄。</p>
 </main>
 
+<script src="./endpoints.js"></script>
 <script>
-  const CLAIM_START_URL = "https://darrenaitool.zeabur.app/webhook/discord-claim-start-2a916bf2c3df4e04a54a0ac625662692";
+  const CLAIM_START_URL = ENDPOINTS.discordClaimStart;
   const continueButton = document.getElementById("continueButton");
   const status = document.getElementById("status");
 

@@ -18,7 +18,7 @@ test("Discord claim starts only after an explicit button click", () => {
 });
 
 test("Discord claim sends only the token to the claim-start webhook", () => {
-  assert.match(page, /\/webhook\/discord-claim-start-[a-f0-9]{32}/);
+  assert.match(page, /ENDPOINTS\.discordClaimStart/); // 網址本身見 endpoints.test.js
   assert.match(page, /body: JSON\.stringify\(\{ token \}\)/);
   assert.match(page, /result\.ok !== true/);
   assert.match(page, /window\.location\.assign\(result\.authorizeUrl\)/);
