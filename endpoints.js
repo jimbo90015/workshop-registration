@@ -10,7 +10,7 @@
     attendee: `${N8N}/workshop-attendee`,
     bookingManage: `${N8N}/workshop-booking-manage`,
     feedback: `${WORKER}/workshop-feedback`,
-    discordClaimStart: `${N8N}/discord-claim-start-2a916bf2c3df4e04a54a0ac625662692`,
+    discordClaimStart: `${WORKER}/discord-claim-start`,
   };
   if (typeof module !== "undefined") module.exports = ENDPOINTS;
   root.ENDPOINTS = ENDPOINTS;
