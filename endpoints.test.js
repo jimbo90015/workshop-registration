@@ -5,15 +5,15 @@ const test = require("node:test");
 
 const ENDPOINTS = require("./endpoints.js");
 
-test("workshop catalog is served by the Cloudflare Worker", () => {
+test("migrated endpoints are served by the Cloudflare Worker", () => {
   assert.equal(ENDPOINTS.catalog, "https://hooks.breakshell.com/workshop-catalog");
+  assert.equal(ENDPOINTS.feedback, "https://hooks.breakshell.com/workshop-feedback");
 });
 
 test("endpoints not yet migrated still point at their n8n webhooks", () => {
   assert.equal(ENDPOINTS.registration, "https://darrenaitool.zeabur.app/webhook/workshop-registration");
   assert.equal(ENDPOINTS.attendee, "https://darrenaitool.zeabur.app/webhook/workshop-attendee");
   assert.equal(ENDPOINTS.bookingManage, "https://darrenaitool.zeabur.app/webhook/workshop-booking-manage");
-  assert.equal(ENDPOINTS.feedback, "https://darrenaitool.zeabur.app/webhook/workshop-feedback");
   assert.equal(
     ENDPOINTS.discordClaimStart,
     "https://darrenaitool.zeabur.app/webhook/discord-claim-start-2a916bf2c3df4e04a54a0ac625662692",
