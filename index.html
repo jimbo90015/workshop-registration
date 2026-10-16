@@ -346,10 +346,11 @@
 
 <script src="./workshop_catalog.js"></script>
 <script src="./group_registration.js"></script>
+<script src="./endpoints.js"></script>
 <script>
-  const WEBHOOK_URL = "https://darrenaitool.zeabur.app/webhook/workshop-registration";
-  const CATALOG_URL = "https://darrenaitool.zeabur.app/webhook/workshop-catalog";
-  const ATTENDEE_URL = "https://darrenaitool.zeabur.app/webhook/workshop-attendee";
+  const WEBHOOK_URL = ENDPOINTS.registration;
+  const CATALOG_URL = ENDPOINTS.catalog;
+  const ATTENDEE_URL = ENDPOINTS.attendee;
   const SUCCESS_STORAGE_KEY = "workshop_registration_success";
   const ATTENDEE_MODE = new URLSearchParams(window.location.search).get("mode") === "attendee";
   // Mail apps sometimes strip the #fragment, so fall back to the ?t= query token.
