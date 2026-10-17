@@ -11,10 +11,13 @@ test("migrated endpoints are served by the Cloudflare Worker", () => {
   assert.equal(ENDPOINTS.discordClaimStart, "https://hooks.breakshell.com/discord-claim-start");
   assert.equal(ENDPOINTS.bookingManage, "https://hooks.breakshell.com/workshop-booking-manage");
   assert.equal(ENDPOINTS.attendee, "https://hooks.breakshell.com/workshop-attendee");
+  assert.equal(ENDPOINTS.registration, "https://hooks.breakshell.com/workshop-registration");
 });
 
-test("endpoints not yet migrated still point at their n8n webhooks", () => {
-  assert.equal(ENDPOINTS.registration, "https://darrenaitool.zeabur.app/webhook/workshop-registration");
+test("no endpoint points at n8n any more", () => {
+  for (const [name, url] of Object.entries(ENDPOINTS)) {
+    assert.doesNotMatch(url, /zeabur\.app|\/webhook\//, `${name} 還指向 n8n`);
+  }
 });
 
 // 每個頁面都從 endpoints.js 拿網址：用到 ENDPOINTS 的頁面要先載入它，任何頁面都不得寫死後端網址

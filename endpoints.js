@@ -1,12 +1,11 @@
-// 所有後端網址集中在這裡。n8n 正逐個搬到 Cloudflare Worker（jimbo90015/breakshell-workflows），
-// 某個端點搬好、驗證過，就把它改指 WORKER；頁面本身不用動。
+// 所有後端網址集中在這裡，全部由 Cloudflare Worker（jimbo90015/breakshell-workflows）提供；
+// 換後端只改這個檔，頁面本身不用動。
 (function (root) {
   const WORKER = "https://hooks.breakshell.com";
-  const N8N = "https://darrenaitool.zeabur.app/webhook";
 
   const ENDPOINTS = {
     catalog: `${WORKER}/workshop-catalog`,
-    registration: `${N8N}/workshop-registration`,
+    registration: `${WORKER}/workshop-registration`,
     attendee: `${WORKER}/workshop-attendee`,
     bookingManage: `${WORKER}/workshop-booking-manage`,
     feedback: `${WORKER}/workshop-feedback`,
