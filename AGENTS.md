@@ -3,7 +3,7 @@
 ## 事實
 - brain 頁：`brain/projects/labs/n8n-cloudflare-migration.md`（後端搬家進度）；業務背景 `brain/projects/client-work/ai-workshop-reed.md`
 - 整合分支：`master`；沒有另外的正式分支（合併到 `master` 即由 GitHub Pages 自動發布）
-- 部署：GitHub Pages `https://jimbo90015.github.io/workshop-registration/`（純靜態 HTML／JS，沒有 build）；資料層：沒有自己的，後端網址集中在 `endpoints.js`，全部由 Cloudflare Worker `hooks.breakshell.com` 提供（repo `jimbo90015/breakshell-workflows`；2026-10-17 報名端點搬完，舊的 n8n `darrenaitool.zeabur.app` 已不再使用）
+- 部署：GitHub Pages `https://jimbo90015.github.io/workshop-registration/`（純靜態 HTML／JS，沒有 build）；資料層：沒有自己的，後端網址集中在 `endpoints.js`，全部由 Cloudflare Worker `hooks.breakshell.com` 提供（repo `jimbo90015/breakshell-workflows`；2026-10-17 報名端點搬完，前端已不再呼叫舊的 n8n `darrenaitool.zeabur.app`）
 - codegraph：無（用 Grep/Read）
 - 併行工作台 Issue：無（需要排他鎖時再建）
 
