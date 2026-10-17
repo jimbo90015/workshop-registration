@@ -7,7 +7,7 @@
   const ENDPOINTS = {
     catalog: `${WORKER}/workshop-catalog`,
     registration: `${N8N}/workshop-registration`,
-    attendee: `${N8N}/workshop-attendee`,
+    attendee: `${WORKER}/workshop-attendee`,
     bookingManage: `${WORKER}/workshop-booking-manage`,
     feedback: `${WORKER}/workshop-feedback`,
     discordClaimStart: `${WORKER}/discord-claim-start`,
